@@ -9,7 +9,7 @@ public class BeamSearch implements Heuristic{
     }
 
     @Override
-    public void calculate() {
+    public void run() {
 
     }
 }
