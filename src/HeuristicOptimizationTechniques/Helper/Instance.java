@@ -3,6 +3,7 @@ package HeuristicOptimizationTechniques.Helper;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.List;
 
 
 public class Instance {
@@ -178,6 +179,69 @@ public class Instance {
     private void parseName(String path) {
         String normalizedPath = path.replace("\\", "/");
         instanceName = normalizedPath.substring(normalizedPath.lastIndexOf("/") + 1, normalizedPath.length() - 4);
+    }
+
+    public double computeObjectiveFunction(List<List<Integer>> routes) {
+        double objectiveFunction = 0.0;
+        for (List<Integer> route : routes) {
+            objectiveFunction += computeRouteLength(route);
+        }
+        objectiveFunction += fairnessWeight * (1 - computeFairness(routes));
+        return objectiveFunction;
+    }
+
+    public double computeFairness(List<List<Integer>> routes) {
+
+        double sum = 0.0;
+        double sumSquared = 0.0;
+
+        for (List<Integer> route : routes) {
+            int d = computeRouteLength(route);
+            sum += d;
+            sumSquared += (d * d);
+        }
+
+        if (sumSquared == 0) {
+            return 1.0;
+        }
+
+        return (sum * sum) / (routes.size() * sumSquared);
+    }
+
+    public int computeRouteLength (List<Integer> route) {
+        if (route.isEmpty()) {
+            return 0;
+        }
+        int totalLength = 0;
+
+        Location prev = depotLocation;
+        for (int i : route) {
+            Location next = getLocationBySolutionIndex(i);
+            totalLength += distance(prev, next);
+            prev = next;
+        }
+
+        return  totalLength + distance(prev, depotLocation);
+    }
+
+    public Location getLocationBySolutionIndex(int index) {
+        if (index == 0) {
+            return depotLocation;
+        }
+
+        index--;
+        if (index < numberOfRequest) { //pickup
+            return requests[index].getPickupLocation();
+        }
+        else { //dropoff
+            return requests[index - numberOfRequest].getDropOffLocation();
+        }
+    }
+
+    public static int distance(Location a, Location b) {
+        double dx = a.getX() - b.getX();
+        double dy = a.getY() - b.getY();
+        return (int) Math.ceil(Math.sqrt(dx * dx + dy * dy));
     }
 }
 
