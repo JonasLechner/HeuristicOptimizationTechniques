@@ -1,9 +1,19 @@
 package HeuristicOptimizationTechniques.Helper;
 
 public class Request {
+
+    private int index;
     private int demand;
     private Location pickupLocation;
     private Location dropOffLocation;
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
+    }
 
     public int getDemand() {
         return demand;
@@ -30,6 +40,6 @@ public class Request {
     }
 
     public String toString() {
-        return "Request: " +"demand=" + demand + ", pickup=" + pickupLocation + ", dropoff=" + dropOffLocation;
+        return "Request " + index + ": " + "demand=" + demand + ", pickup=" + pickupLocation + ", dropoff=" + dropOffLocation;
     }
 }

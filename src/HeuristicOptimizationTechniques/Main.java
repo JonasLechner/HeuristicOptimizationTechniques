@@ -4,13 +4,13 @@ import HeuristicOptimizationTechniques.Algorithms.GreedyConstruction;
 import HeuristicOptimizationTechniques.Helper.Instance;
 import HeuristicOptimizationTechniques.Helper.Request;
 
-import java.io.IOException;
 import java.util.*;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
 
-        String path = "instances/50/test/instance40_nreq50_nveh2_gamma46.txt";
+    public static void main(String[] args) {
+
+        String path = "instances/50/test/instance34_nreq50_nveh2_gamma47.txt";
 
         Instance instance = new Instance(path);
 
@@ -30,8 +30,8 @@ public class Main {
         GreedyConstruction gc = new GreedyConstruction(instance);
 
         List<List<Integer>> routes = gc.construct();
-
-        gc.writeSolution("mySolution.txt", routes, instance.getInstanceName());
+        System.out.println(instance.computeObjectiveFunction(routes));
+        Instance.writeSolution("mySolution.txt", routes, instance.getInstanceName());
     }
 }
 

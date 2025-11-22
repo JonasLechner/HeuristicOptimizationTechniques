@@ -1,8 +1,6 @@
 package HeuristicOptimizationTechniques.Helper;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 
 
@@ -59,6 +57,7 @@ public class Instance {
             for (int i = 0; i < numberOfRequest; i++) {
                 requests[i] = new Request();
                 requests[i].setDemand(Integer.parseInt(tokensDemands[i]));
+                requests[i].setIndex(i);
             }
 
             //---------------------------------//
@@ -190,8 +189,23 @@ public class Instance {
         return objectiveFunction;
     }
 
-    public double computeFairness(List<List<Integer>> routes) {
+    //Computes objectiveFunction by adding element to targetVehicle
+    public double computeObjectiveFunction(List<List<Integer>> routes, int requestIndex, int targetVehicle) {
+        double objectiveFunction = 0.0;
+        int i = 0;
+        for (List<Integer> route : routes) {
+            if (i == targetVehicle) {
+                objectiveFunction += computeRouteLength(route, requestIndex);
+            } else {
+                objectiveFunction += computeRouteLength(route);
+            }
+            ++i;
+        }
+        objectiveFunction += fairnessWeight * (1 - computeFairness(routes, requestIndex, targetVehicle));
+        return objectiveFunction;
+    }
 
+    public double computeFairness(List<List<Integer>> routes) {
         double sum = 0.0;
         double sumSquared = 0.0;
 
@@ -199,6 +213,31 @@ public class Instance {
             int d = computeRouteLength(route);
             sum += d;
             sumSquared += (d * d);
+        }
+
+        if (sumSquared == 0) {
+            return 1.0;
+        }
+
+        return (sum * sum) / (routes.size() * sumSquared);
+    }
+
+    //Computes fairness by adding element to targetVehicle
+    public double computeFairness(List<List<Integer>> routes, int requestIndex, int targetVehicle) {
+        double sum = 0.0;
+        double sumSquared = 0.0;
+
+        int i = 0;
+        for (List<Integer> route : routes) {
+            int d;
+            if (i == targetVehicle) {
+                d = computeRouteLength(route, requestIndex);
+            } else {
+                d = computeRouteLength(route);
+            }
+            sum += d;
+            sumSquared += (d * d);
+            ++i;
         }
 
         if (sumSquared == 0) {
@@ -224,6 +263,24 @@ public class Instance {
         return  totalLength + distance(prev, depotLocation);
     }
 
+    //routes ar given without depot location
+    public int computeRouteLength (List<Integer> route, int requestIndex) {
+        Location pickup = requests[requestIndex].getPickupLocation();
+        Location dropoff = requests[requestIndex].getDropOffLocation();
+        if (route.isEmpty()) {
+            return distance(depotLocation, pickup) + distance(pickup, dropoff) + distance(dropoff, depotLocation);
+        }
+        int totalLength = 0;
+        Location prev = depotLocation;
+        for (int i : route) {
+            Location next = getLocationBySolutionIndex(i);
+            totalLength += distance(prev, next);
+            prev = next;
+        }
+
+        return  totalLength + distance(prev, pickup) + distance(pickup, dropoff) + distance(dropoff,  depotLocation);
+    }
+
     public Location getLocationBySolutionIndex(int index) {
         if (index == 0) {
             return depotLocation;
@@ -242,6 +299,23 @@ public class Instance {
         double dx = a.getX() - b.getX();
         double dy = a.getY() - b.getY();
         return (int) Math.ceil(Math.sqrt(dx * dx + dy * dy));
+    }
+
+    public static void writeSolution(String path, List<List<Integer>> routes, String instanceName) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(path))) {
+            bw.write(instanceName); // oder instance name
+            bw.newLine();
+
+            for (List<Integer> route : routes) {
+                for (int i = 0; i < route.size(); i++) {
+                    if (i > 0) bw.write(" ");
+                    bw.write(String.valueOf(route.get(i)));
+                }
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error writing solution file");
+        }
     }
 }
 
