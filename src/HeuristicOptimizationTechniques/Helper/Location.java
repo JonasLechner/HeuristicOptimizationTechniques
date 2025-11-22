@@ -25,6 +25,12 @@ public class Location {
         this.y = y;
     }
 
+    private int distance(Location other) {
+        double dx = this.x  - other.x;
+        double dy = this.y - other.y;
+        return (int) Math.ceil(Math.sqrt(dx * dx + dy * dy));
+    }
+
     @Override
     public String toString() {
         return "(" + x + ", " + y + ")";
