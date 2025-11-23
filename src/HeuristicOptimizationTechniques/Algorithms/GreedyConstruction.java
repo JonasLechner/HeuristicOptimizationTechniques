@@ -1,5 +1,7 @@
 package HeuristicOptimizationTechniques.Algorithms;
 
+import static HeuristicOptimizationTechniques.Helper.Instance.distance;
+
 import HeuristicOptimizationTechniques.Helper.Instance;
 import HeuristicOptimizationTechniques.Helper.Location;
 import HeuristicOptimizationTechniques.Helper.Request;
@@ -29,12 +31,6 @@ public class GreedyConstruction {
         this.fairnessWeight = instance.getFairnessWeight();
         this.depotLocation = instance.getDepotLocation();
         this.requests = instance.getRequests();
-    }
-
-    private int distance(Location a, Location b) {
-        double dx = a.getX() - b.getX();
-        double dy = a.getY() - b.getY();
-        return (int) Math.ceil(Math.sqrt(dx * dx + dy * dy));
     }
 
     public List<List<Integer>> construct() {
@@ -134,8 +130,7 @@ public class GreedyConstruction {
         index--;
         if (index < numberOfRequest) { //pickup
             return requests[index].getPickupLocation();
-        }
-        else { //dropoff
+        } else { //dropoff
             return requests[index - numberOfRequest].getDropOffLocation();
         }
     }

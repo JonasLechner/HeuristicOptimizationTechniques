@@ -57,7 +57,7 @@ public class Instance {
             }
 
             for (int i = 0; i < numberOfRequest; i++) {
-                requests[i] = new Request();
+                requests[i] = new Request(i + 1);
                 requests[i].setDemand(Integer.parseInt(tokensDemands[i]));
             }
 
@@ -75,7 +75,7 @@ public class Instance {
             if (xyDepotTokens.length != 2) {
                 throw new IllegalArgumentException("there must be exactly " + 2 + " xyDepotTokens given.");
             }
-            depotLocation = new Location(Integer.parseInt(xyDepotTokens[0]), Integer.parseInt(xyDepotTokens[1]));
+            depotLocation = new Location(Integer.parseInt(xyDepotTokens[0]), Integer.parseInt(xyDepotTokens[1]), 0);
 
             //---------------------------------//
             // pickup locations
@@ -90,7 +90,7 @@ public class Instance {
                 if (pickupLocationTokens.length != 2) {
                     throw new IllegalArgumentException("there must be exactly " + 2 + " values given.");
                 }
-                requests[i].setPickupLocation(new Location(Integer.parseInt(pickupLocationTokens[0]), Integer.parseInt(pickupLocationTokens[1])));
+                requests[i].setPickupLocation(new Location(Integer.parseInt(pickupLocationTokens[0]), Integer.parseInt(pickupLocationTokens[1]), 1 + i));
             }
 
             //---------------------------------//
@@ -105,7 +105,7 @@ public class Instance {
                 if (dropOffLocationTokens.length != 2) {
                     throw new IllegalArgumentException("there must be exactly " + 2 + " values given.");
                 }
-                requests[i].setDropOffLocation(new Location(Integer.parseInt(dropOffLocationTokens[0]), Integer.parseInt(dropOffLocationTokens[1])));
+                requests[i].setDropOffLocation(new Location(Integer.parseInt(dropOffLocationTokens[0]), Integer.parseInt(dropOffLocationTokens[1]), numberOfRequest + i + 1));
             }
         } catch (IOException e) {
             throw new RuntimeException("Error reading instance file: " + instanceName, e);
@@ -208,7 +208,7 @@ public class Instance {
         return (sum * sum) / (routes.size() * sumSquared);
     }
 
-    public int computeRouteLength (List<Integer> route) {
+    public int computeRouteLength(List<Integer> route) {
         if (route.isEmpty()) {
             return 0;
         }
@@ -221,7 +221,7 @@ public class Instance {
             prev = next;
         }
 
-        return  totalLength + distance(prev, depotLocation);
+        return totalLength + distance(prev, depotLocation);
     }
 
     public Location getLocationBySolutionIndex(int index) {
@@ -232,8 +232,7 @@ public class Instance {
         index--;
         if (index < numberOfRequest) { //pickup
             return requests[index].getPickupLocation();
-        }
-        else { //dropoff
+        } else { //dropoff
             return requests[index - numberOfRequest].getDropOffLocation();
         }
     }

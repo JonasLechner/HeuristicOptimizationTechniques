@@ -4,6 +4,15 @@ public class Request {
     private int demand;
     private Location pickupLocation;
     private Location dropOffLocation;
+    private final int id;
+
+    public int getId() {
+        return id;
+    }
+
+    public Request(int id) {
+        this.id = id;
+    }
 
     public int getDemand() {
         return demand;
@@ -30,6 +39,6 @@ public class Request {
     }
 
     public String toString() {
-        return "Request: " +"demand=" + demand + ", pickup=" + pickupLocation + ", dropoff=" + dropOffLocation;
+        return "Request: " + "demand=" + demand + ", pickup=" + pickupLocation + ", dropoff=" + dropOffLocation;
     }
 }
