@@ -1,15 +1,18 @@
 package HeuristicOptimizationTechniques.Helper
 
-//Wrapper for Instance, will be replaced later
-class Instance2(
+//Kotlin Wrapper for Java Instance
+//TODO replace Instance entirely
+class InstanceWrapper(
     val instance: Instance
 ) {
     private val requestsById = instance.requests.associateBy { it.id }
-    val nRequests: Int = instance.requests.size
-
+    val nRequests: Int = instance.numberOfRequest
+    val minRequests: Int = instance.minNumberOfRequestsFulfilled
     val depot = instance.depotLocation
 
     val requests = instance.requests
+
+    val capacity = instance.vehicleCapacity
 
     val indexToLocation: List<Location> = run {
         val arr = ArrayList<Location>(2 * nRequests + 1)
@@ -35,8 +38,12 @@ class Instance2(
             else -> throw IllegalArgumentException("Index out of range: $idx")
         }
 
-    fun requestById(requestId: Int) = requestsById.getValue(requestId)
+    fun requestById(requestId: Int): Request = requestsById.getValue(requestId)
     fun pickupIndexFor(requestId: Int) = requestId
     fun dropIndexFor(requestId: Int) = nRequests + requestId
-    fun locationOf(requestId: Int) = indexToLocation[requestId]
+
+    fun indecesForRequest(requestId: Int): Pair<Int, Int> =
+        Pair(pickupIndexFor(requestId), dropIndexFor(requestId))
+
+    fun locationOf(locationId: Int) = indexToLocation[locationId]
 }

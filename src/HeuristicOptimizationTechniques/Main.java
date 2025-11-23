@@ -1,11 +1,13 @@
 package HeuristicOptimizationTechniques;
 
 import HeuristicOptimizationTechniques.Algorithms.GreedyConstruction;
+import HeuristicOptimizationTechniques.Algorithms.PilotSearch;
 import HeuristicOptimizationTechniques.Helper.Instance;
+import HeuristicOptimizationTechniques.Helper.InstanceWrapper;
 import HeuristicOptimizationTechniques.Helper.Request;
+import HeuristicOptimizationTechniques.Helper.Solution;
 
 import java.io.IOException;
-import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -23,15 +25,17 @@ public class Main {
 
         System.out.println("Depot: " + instance.getDepotLocation());
 
-        for(Request r : instance.getRequests()){
+        for (Request r : instance.getRequests()) {
             System.out.println(r);
         }
 
-        GreedyConstruction gc = new GreedyConstruction(instance);
+        //GreedyConstruction gc = new GreedyConstruction(instance);
+        //List<List<Integer>> routes = gc.construct();
+        //gc.writeSolution("mySolution.txt", routes, instance.getInstanceName());
 
-        List<List<Integer>> routes = gc.construct();
-
-        gc.writeSolution("mySolution.txt", routes, instance.getInstanceName());
+        PilotSearch pilot = new PilotSearch(new InstanceWrapper(instance), null);
+        Solution solution = pilot.solve();
+        instance.writeSolution("mySolution.txt", solution.getRoutes(), instance.getInstanceName());
     }
 }
 

@@ -1,7 +1,9 @@
 package HeuristicOptimizationTechniques.Helper;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
@@ -234,6 +236,21 @@ public class Instance {
             return requests[index].getPickupLocation();
         } else { //dropoff
             return requests[index - numberOfRequest].getDropOffLocation();
+        }
+    }
+
+    public void writeSolution(String path, List<List<Integer>> routes, String instanceName) throws IOException {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(path))) {
+            bw.write(instanceName); // oder instance name
+            bw.newLine();
+
+            for (List<Integer> route : routes) {
+                for (int i = 0; i < route.size(); i++) {
+                    if (i > 0) bw.write(" ");
+                    bw.write(String.valueOf(route.get(i)));
+                }
+                bw.newLine();
+            }
         }
     }
 

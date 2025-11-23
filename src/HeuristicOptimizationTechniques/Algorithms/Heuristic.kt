@@ -1,5 +1,7 @@
-package HeuristicOptimizationTechniques.Algorithms;
+package HeuristicOptimizationTechniques.Algorithms
 
-public interface Heuristic {
-    void run();
+import HeuristicOptimizationTechniques.Helper.Solution
+
+interface Heuristic {
+    fun solve(): Solution
 }

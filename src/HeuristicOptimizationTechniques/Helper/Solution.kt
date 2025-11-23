@@ -17,5 +17,24 @@ class Solution(val nRequests: Int) {
         totalCost = other.totalCost
     }
 
+    fun setAssigned(locationId: Int) {
+        assert(locationId <= assigned.size())
+        assigned.set(locationId)
+    }
+
+    fun isAssigned(locationId: Int): Boolean {
+        return assigned.get(locationId)
+    }
+
+    fun assignedCount(): Int {
+        return assigned.cardinality()
+    }
+
     fun clone(): Solution = Solution(this)
+
+    override fun toString(): String {
+        return routes.joinToString(separator = System.lineSeparator()) { route ->
+            route.joinToString(separator = " ")
+        }
+    }
 }
