@@ -1,8 +1,11 @@
 package HeuristicOptimizationTechniques.Helper;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 
 
 public class Instance {
@@ -56,7 +59,7 @@ public class Instance {
             }
 
             for (int i = 0; i < numberOfRequest; i++) {
-                requests[i] = new Request();
+                requests[i] = new Request(i + 1);
                 requests[i].setDemand(Integer.parseInt(tokensDemands[i]));
             }
 
@@ -74,7 +77,7 @@ public class Instance {
             if (xyDepotTokens.length != 2) {
                 throw new IllegalArgumentException("there must be exactly " + 2 + " xyDepotTokens given.");
             }
-            depotLocation = new Location(Integer.parseInt(xyDepotTokens[0]), Integer.parseInt(xyDepotTokens[1]));
+            depotLocation = new Location(Integer.parseInt(xyDepotTokens[0]), Integer.parseInt(xyDepotTokens[1]), 0);
 
             //---------------------------------//
             // pickup locations
@@ -89,7 +92,7 @@ public class Instance {
                 if (pickupLocationTokens.length != 2) {
                     throw new IllegalArgumentException("there must be exactly " + 2 + " values given.");
                 }
-                requests[i].setPickupLocation(new Location(Integer.parseInt(pickupLocationTokens[0]), Integer.parseInt(pickupLocationTokens[1])));
+                requests[i].setPickupLocation(new Location(Integer.parseInt(pickupLocationTokens[0]), Integer.parseInt(pickupLocationTokens[1]), 1 + i));
             }
 
             //---------------------------------//
@@ -104,7 +107,7 @@ public class Instance {
                 if (dropOffLocationTokens.length != 2) {
                     throw new IllegalArgumentException("there must be exactly " + 2 + " values given.");
                 }
-                requests[i].setDropOffLocation(new Location(Integer.parseInt(dropOffLocationTokens[0]), Integer.parseInt(dropOffLocationTokens[1])));
+                requests[i].setDropOffLocation(new Location(Integer.parseInt(dropOffLocationTokens[0]), Integer.parseInt(dropOffLocationTokens[1]), numberOfRequest + i + 1));
             }
         } catch (IOException e) {
             throw new RuntimeException("Error reading instance file: " + instanceName, e);
@@ -180,69 +183,81 @@ public class Instance {
         instanceName = normalizedPath.substring(normalizedPath.lastIndexOf("/") + 1, normalizedPath.length() - 4);
     }
 
-    public class Location {
-        private int x;
-        private int y;
+    public double computeObjectiveFunction(List<List<Integer>> routes) {
+        double objectiveFunction = 0.0;
+        for (List<Integer> route : routes) {
+            objectiveFunction += computeRouteLength(route);
+        }
+        objectiveFunction += fairnessWeight * (1 - computeFairness(routes));
+        return objectiveFunction;
+    }
 
-        public Location(int x, int y) {
-            this.x = x;
-            this.y = y;
+    public double computeFairness(List<List<Integer>> routes) {
+
+        double sum = 0.0;
+        double sumSquared = 0.0;
+
+        for (List<Integer> route : routes) {
+            int d = computeRouteLength(route);
+            sum += d;
+            sumSquared += (d * d);
         }
 
-        public int getX() {
-            return x;
+        if (sumSquared == 0) {
+            return 1.0;
         }
 
-        public void setX(int x) {
-            this.x = x;
+        return (sum * sum) / (routes.size() * sumSquared);
+    }
+
+    public int computeRouteLength(List<Integer> route) {
+        if (route.isEmpty()) {
+            return 0;
+        }
+        int totalLength = 0;
+
+        Location prev = depotLocation;
+        for (int i : route) {
+            Location next = getLocationBySolutionIndex(i);
+            totalLength += distance(prev, next);
+            prev = next;
         }
 
-        public int getY() {
-            return y;
+        return totalLength + distance(prev, depotLocation);
+    }
+
+    public Location getLocationBySolutionIndex(int index) {
+        if (index == 0) {
+            return depotLocation;
         }
 
-        public void setY(int y) {
-            this.y = y;
-        }
-
-        @Override
-        public String toString() {
-            return "(" + x + ", " + y + ")";
+        index--;
+        if (index < numberOfRequest) { //pickup
+            return requests[index].getPickupLocation();
+        } else { //dropoff
+            return requests[index - numberOfRequest].getDropOffLocation();
         }
     }
 
-    public class Request {
-        private int demand;
-        private Location pickupLocation;
-        private Location dropOffLocation;
+    public void writeSolution(String path, List<List<Integer>> routes, String instanceName) throws IOException {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(path))) {
+            bw.write(instanceName); // oder instance name
+            bw.newLine();
 
-        public int getDemand() {
-            return demand;
+            for (List<Integer> route : routes) {
+                for (int i = 0; i < route.size(); i++) {
+                    if (i > 0) bw.write(" ");
+                    bw.write(String.valueOf(route.get(i)));
+                }
+                bw.newLine();
+            }
         }
+    }
 
-        public void setDemand(int demand) {
-            this.demand = demand;
-        }
-
-        public Location getPickupLocation() {
-            return pickupLocation;
-        }
-
-        public void setPickupLocation(Location pickupLocation) {
-            this.pickupLocation = pickupLocation;
-        }
-
-        public Location getDropOffLocation() {
-            return dropOffLocation;
-        }
-
-        public void setDropOffLocation(Location dropOffLocation) {
-            this.dropOffLocation = dropOffLocation;
-        }
-
-        public String toString() {
-            return "Request: " +"demand=" + demand + ", pickup=" + pickupLocation + ", dropoff=" + dropOffLocation;
-        }
+    public static int distance(Location a, Location b) {
+        double dx = a.getX() - b.getX();
+        double dy = a.getY() - b.getY();
+        return (int) Math.ceil(Math.sqrt(dx * dx + dy * dy));
     }
 }
 
