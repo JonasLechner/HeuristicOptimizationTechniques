@@ -7,27 +7,28 @@ typealias Routes = MutableList<Route>
 
 class Solution(val nRequests: Int) {
     val routes: Routes = mutableListOf()
-    val assigned: BitSet = BitSet(nRequests + 1)
-    var totalCost: Int = 0
+    val fulfilledRequests: BitSet =
+        BitSet(nRequests + 1) //n+ bits, bit==1 if request already fulfilled
+    var totalCost: Double = 0.0 //total cost of the partial/full solution
 
     //copy constructor
     constructor(other: Solution) : this(other.nRequests) {
         other.routes.forEach { r -> routes.add(r.toMutableList()) }
-        assigned.or(other.assigned)
+        fulfilledRequests.or(other.fulfilledRequests)
         totalCost = other.totalCost
     }
 
-    fun setAssigned(locationId: Int) {
-        assert(locationId <= assigned.size())
-        assigned.set(locationId)
+    fun setFulfilled(requestId: Int) {
+        fulfilledRequests.set(requestId)
     }
 
-    fun isAssigned(locationId: Int): Boolean {
-        return assigned.get(locationId)
+    fun isFulfilled(requestId: Int): Boolean {
+        return fulfilledRequests.get(requestId)
     }
 
-    fun assignedCount(): Int {
-        return assigned.cardinality()
+    //how many requests are fulfilled
+    fun fulfilledCount(): Int {
+        return fulfilledRequests.cardinality()
     }
 
     fun clone(): Solution = Solution(this)

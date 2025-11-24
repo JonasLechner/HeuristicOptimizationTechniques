@@ -1,18 +1,13 @@
 package HeuristicOptimizationTechniques.Algorithms;
 
-import static HeuristicOptimizationTechniques.Helper.Instance.distance;
-
 import HeuristicOptimizationTechniques.Helper.Instance;
 import HeuristicOptimizationTechniques.Helper.Location;
 import HeuristicOptimizationTechniques.Helper.Request;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 
 public class GreedyConstruction {
-
+    private final Instance instance;
     private int numberOfRequest;
     private int numberOfVehicles;
     private int vehicleCapacity;
@@ -21,16 +16,17 @@ public class GreedyConstruction {
 
     private Location depotLocation;
 
-    private Request[] requests;
+    private List<Request> requests;
 
     public GreedyConstruction(Instance instance) {
-        this.numberOfRequest = instance.getNumberOfRequest();
+        this.numberOfRequest = instance.getNumberOfRequests();
         this.numberOfVehicles = instance.getNumberOfVehicles();
         this.vehicleCapacity = instance.getVehicleCapacity();
         this.minNumberOfRequestsFulfilled = instance.getMinNumberOfRequestsFulfilled();
         this.fairnessWeight = instance.getFairnessWeight();
         this.depotLocation = instance.getDepotLocation();
         this.requests = instance.getRequests();
+        this.instance = instance;
     }
 
     public List<List<Integer>> construct() {
@@ -46,7 +42,8 @@ public class GreedyConstruction {
         for (int i = 0; i < numberOfRequest; i++) {
             order.add(i);
         }
-        order.sort(Comparator.comparingInt(i -> distance(depotLocation, requests[i].getPickupLocation())));
+
+        order.sort(Comparator.comparingInt(i -> depotLocation.distance(requests.get(i).getPickupLocation())));
 
         int alreadyServed = 0;
         for (int i = 0; i < numberOfVehicles; i++) {
@@ -71,7 +68,7 @@ public class GreedyConstruction {
             if (alreadyServed >= minNumberOfRequestsFulfilled) {
                 break;
             }
-            Request r = requests[requestIndex];
+            Request r = requests.get(requestIndex);
             int demand = r.getDemand();
             if (demand > vehicleCapacity) {
                 continue; // not possible
@@ -112,28 +109,14 @@ public class GreedyConstruction {
 
         //whole distance from depot -> pickup -> dropoff -> depots
         if (route.isEmpty()) {
-            return distance(depotLocation, pickup) + distance(pickup, dropoff) + distance(dropoff, depotLocation);
+            return depotLocation.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(depotLocation);
         }
 
         int lastIndex = route.getLast();
-        Location lastLoc = getLocationBySolutionIndex(lastIndex);
+        Location lastLoc = instance.getLocationOf(lastIndex);
 
         //extra cost is lastLocation -> pickup -> dropoff -> depot - lastLocation -> depot
-        return distance(lastLoc, pickup) + distance(pickup, dropoff) + distance(dropoff, depotLocation) - distance(lastLoc, depotLocation);
+        return lastLoc.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(depotLocation) - lastLoc.distance(depotLocation);
     }
-
-    private Location getLocationBySolutionIndex(int index) {
-        if (index == 0) {
-            return depotLocation;
-        }
-
-        index--;
-        if (index < numberOfRequest) { //pickup
-            return requests[index].getPickupLocation();
-        } else { //dropoff
-            return requests[index - numberOfRequest].getDropOffLocation();
-        }
-    }
-
 
 }

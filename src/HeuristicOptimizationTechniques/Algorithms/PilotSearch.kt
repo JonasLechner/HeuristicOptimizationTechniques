@@ -1,163 +1,106 @@
 package HeuristicOptimizationTechniques.Algorithms
 
 import HeuristicOptimizationTechniques.Helper.Candidate
-import HeuristicOptimizationTechniques.Helper.InstanceWrapper
-import HeuristicOptimizationTechniques.Helper.RouteUtils
+import HeuristicOptimizationTechniques.Helper.Instance
+import HeuristicOptimizationTechniques.Helper.Logger
 import HeuristicOptimizationTechniques.Helper.Solution
-import java.util.logging.Logger
+import kotlin.system.measureTimeMillis
 
-class PilotSearch(private val instance: InstanceWrapper, private val rollout: Int? = null) :
+class PilotSearch(
+    private val instance: Instance,
+    private val maxRolloutDepth: Int,
+    private val maxCandidateCount: Int
+) :
     Heuristic {
-    private val logger = Logger.getLogger(PilotSearch::class.java.name)
-    val n: Int = instance.nRequests
+    private val logger = Logger.getLogger(PilotSearch::class.java.simpleName)
+    private val n: Int = instance.numberOfRequests
 
     override fun solve(): Solution {
-        val currentSolution = Solution(n)
-        var bestCompleteSolution: Solution? = null
+        val currentSolution = Solution(n) //solution where best candidate is added in each iteration
+        var bestCompleteSolution: Solution? = null //solution with best greedy extension
 
-        logger.info("Running...")
+        val time = measureTimeMillis {
+            logger.info("Running...")
 
-        while (currentSolution.assignedCount() <= n) {
-            var bestCost = Int.MAX_VALUE
-            var bestRollout: Solution? = null
-            var bestCandidate: Candidate? = null
+            while (currentSolution.fulfilledCount() < n) {
+                var bestCost = Double.MAX_VALUE
+                var bestRollout: Solution? = null
+                var bestCandidate: Candidate? = null
 
-            val candidates = createAllValidCandidates(currentSolution)
-            logger.info("Iteration ${currentSolution.assignedCount()}, found ${candidates.size} candidates")
-            if (candidates.isEmpty()) {
-                break
-            }
+                //create one-step extensions (candidates) and take best ones
+                val candidates = instance.createAllValidCandidates(currentSolution)
+                    .sortedBy { instance.calculateDelta(currentSolution, it) }
+                    .take(maxCandidateCount)
 
-            for (candidate in candidates) {
-                val tmp = currentSolution.clone()
-                applyCandidate(tmp, candidate)
+                logger.info("Iteration ${currentSolution.fulfilledCount()}, found ${candidates.size} candidates.")
+                if (candidates.isEmpty()) {
+                    break
+                }
 
-                val rolloutSolution = rollout(tmp)
+                //perform rollout for each candidate
+                for (candidate in candidates) {
+                    val tmp = currentSolution.clone()
+                    instance.applyCandidateToSolution(tmp, candidate)
 
-                val cost = RouteUtils.totalCost(rolloutSolution, instance)
-                if (cost < bestCost) {
-                    bestCandidate = candidate
-                    bestCost = cost
-                    bestRollout = rolloutSolution
+                    val rolloutSolution = rollout(tmp)
+
+                    val cost = instance.computeObjectiveFunction(rolloutSolution.routes)
+                    if (cost < bestCost) {
+                        bestCandidate = candidate
+                        bestCost = cost
+                        bestRollout = rolloutSolution
+                    }
+                }
+
+                if (bestCandidate == null) {
+                    break
+                }
+
+                instance.applyCandidateToSolution(currentSolution, bestCandidate)
+                currentSolution.totalCost =
+                    instance.computeObjectiveFunction(currentSolution.routes)
+
+                val bestCompleteCount = bestCompleteSolution?.fulfilledCount() ?: 0
+                val bestCompleteCost = bestCompleteSolution?.totalCost ?: Double.MAX_VALUE
+
+                val hasEnoughRequests = bestCompleteCount >= instance.minNumberOfRequestsFulfilled
+
+                //always take if not enough requests
+                //if enough requests, only if improved
+                if (!hasEnoughRequests || (bestCost < bestCompleteCost)) {
+                    bestCompleteSolution = bestRollout
                 }
             }
-
-            if (bestCandidate == null || bestRollout == null) {
-                break
-            }
-
-            applyCandidate(currentSolution, bestCandidate)
-            currentSolution.totalCost = RouteUtils.totalCost(currentSolution, instance)
-
-            if (bestCompleteSolution == null
-                || (bestRollout.totalCost < bestCompleteSolution.totalCost)
-            ) {
-                bestCompleteSolution = bestRollout
-            }
         }
+
+        logger.info("Found solution with cost ${bestCompleteSolution?.totalCost} in ${time / 1000.0} seconds.")
         return bestCompleteSolution ?: currentSolution //(partial) current solution fallback
     }
 
-    fun rollout(solution: Solution, breakOffIfLocalMax: Boolean = true): Solution {
-        while (solution.assignedCount() <= n) {
-            val candidates = createAllValidCandidates(solution)
+    //generate rollout for a particular solution
+    private fun rollout(solution: Solution, breakOffIfLocalMax: Boolean = true): Solution {
+        for (i in 1..maxRolloutDepth) {
+            val candidates = instance.createAllValidCandidates(solution)
 
             if (candidates.isEmpty()) {
                 return solution
             }
 
-            val bestCandidate: Pair<Candidate, Int> =
-                candidates
-                    .map { candidate ->
-                        val cost = calculateDelta(solution, candidate)
-                        candidate to cost
-                    }
-                    .minBy { (_, cost) -> cost }
+            val bestCandidate: Pair<Candidate, Double> = candidates.map { candidate ->
+                val cost = instance.calculateDelta(solution, candidate)
+                candidate to cost
+            }.minBy { (_, cost) -> cost }
 
             //stop creating if next insertion does not improve total cost
             //and min amount of requests fulfilled
-            if (breakOffIfLocalMax
-                && solution.assignedCount() >= instance.minRequests
-                && bestCandidate.second >= 0
-            ) {
+            if (breakOffIfLocalMax && solution.fulfilledCount() >= instance.minNumberOfRequestsFulfilled && bestCandidate.second >= 0) {
                 return solution
             }
 
-            applyCandidate(solution, bestCandidate.first)
+            instance.applyCandidateToSolution(solution, bestCandidate.first)
         }
 
-        solution.totalCost = RouteUtils.totalCost(solution, instance)
+        solution.totalCost = instance.computeObjectiveFunction(solution.routes)
         return solution
-    }
-
-    fun applyCandidate(solution: Solution, candidate: Candidate) {
-        assert(candidate.routeIndex <= solution.routes.size)
-
-        val (pickup, dropOff) = instance.indecesForRequest(candidate.requestId)
-        if (candidate.routeIndex == solution.routes.size) {
-            solution.routes.add(mutableListOf(pickup, dropOff))
-        } else {
-            val toModify = solution.routes[candidate.routeIndex]
-            toModify.add(candidate.pickPos, pickup)
-            toModify.add(candidate.dropPos, dropOff)
-        }
-        solution.setAssigned(candidate.requestId)
-    }
-
-    fun calculateDelta(solution: Solution, candidate: Candidate): Int {
-        //new route
-        val (pickup, dropOff) = instance.indecesForRequest(candidate.requestId)
-
-        if (candidate.routeIndex == solution.routes.size) {
-            return RouteUtils.routeCost(
-                mutableListOf(pickup, dropOff), instance
-            )
-        }
-
-        //modified route
-        val oldRoute = solution.routes[candidate.routeIndex]
-        val newRoute = ArrayList(oldRoute)
-        newRoute.add(candidate.pickPos, pickup)
-        newRoute.add(candidate.dropPos, dropOff)
-
-        return RouteUtils.routeCost(newRoute, instance) - RouteUtils.routeCost(oldRoute, instance)
-    }
-
-    fun createAllValidCandidatesPerRequest(sol: Solution, requestId: Int): List<Candidate> {
-        val candidates = ArrayList<Candidate>()
-
-        val (pickup, dropOff) = instance.indecesForRequest(requestId)
-
-        for ((routeIdx, route) in sol.routes.withIndex()) {
-            for (i in 0..route.size) {
-                for (j in i + 1..route.size + 1) {
-                    val tmp = ArrayList(route)
-                    tmp.add(i, pickup)
-                    tmp.add(j, dropOff)
-
-                    if (RouteUtils.isCapacityFeasible(tmp, instance)) {
-                        candidates.add(Candidate(requestId, routeIdx, i, j))
-                    }
-                }
-            }
-        }
-
-        val withNewRoute = mutableListOf(pickup, dropOff)
-        if (RouteUtils.isCapacityFeasible(withNewRoute, instance)) {
-            candidates.add(Candidate(requestId, sol.routes.size, 0, 1))
-        }
-
-        return candidates
-    }
-
-    private fun createAllValidCandidates(sol: Solution): List<Candidate> {
-        val all = ArrayList<Candidate>()
-        for (rId in 1..instance.nRequests) {
-            if (sol.isAssigned(rId)) continue
-            val cands = createAllValidCandidatesPerRequest(sol, rId)
-            all.addAll(cands)
-        }
-
-        return all
     }
 }
