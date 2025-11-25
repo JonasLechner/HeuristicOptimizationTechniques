@@ -9,10 +9,10 @@ import java.util.*;
 
 public class GreedyConstruction {
     private final Instance instance;
-    private int numberOfRequest;
-    private int numberOfVehicles;
-    private int vehicleCapacity;
-    private int minNumberOfRequestsFulfilled;
+    private final int numberOfRequest;
+    private final int numberOfVehicles;
+    private final int vehicleCapacity;
+    private final int minNumberOfRequestsFulfilled;
 
     public GreedyConstruction(Instance instance) {
         this.numberOfRequest = instance.getNumberOfRequests();
@@ -53,7 +53,7 @@ public class GreedyConstruction {
                 alreadyServed++;
                 continue;
             }
-
+            count++;
             if (alreadyServed >= minNumberOfRequestsFulfilled) {
                 break;
             }
@@ -63,29 +63,16 @@ public class GreedyConstruction {
                 continue; // not possible
             }
 
-            // check for which vehicle the extra cost is the smallest
-            /*int bestK = -1;
-            int bestDelta = Integer.MAX_VALUE;
-
-            for (int k = 0; k < numberOfVehicles; k++) {
-                List<Integer> route = routes.get(k);
-                int delta = instance.computeRouteLengthDelta(route, requestIndex);
-                if (delta < bestDelta) {
-                    bestDelta = delta;
-                    bestK = k;
-                }
-            }*/
-
             int bestK = -1;
             int bestPosition = -1;
-            int bestDelta = Integer.MAX_VALUE;
+            double bestDelta = Integer.MAX_VALUE;
 
             for (int k = 0; k < numberOfVehicles; k++) {
                 List<Integer> route = routes.get(k);
                 for (int i = 0; i < route.size(); i+=2) {
                     int previousDropoff =  i == 0 ? -1 : route.get(i - 1);
                     int nextPickup =  i == route.size() - 2 ? -1 : route.get(i + 1);
-                    int delta = instance.computeRouteLengthDelta(route, requestIndex, previousDropoff, nextPickup);
+                    double delta = instance.computeObjectiveFunction(routes, requestIndex, previousDropoff, nextPickup, k);
                     if (delta < bestDelta) {
                         bestDelta = delta;
                         bestK = k;
@@ -97,7 +84,7 @@ public class GreedyConstruction {
             // update route from best vehicle
             routes.get(bestK).add(bestPosition, pickup);
             routes.get(bestK).add(bestPosition + 1, dropoff);
-
+            System.out.println("iteration: " + count);
             alreadyServed++;
         }
         System.out.println("score: " + instance.computeObjectiveFunction(routes));
