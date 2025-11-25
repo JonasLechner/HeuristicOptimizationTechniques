@@ -11,7 +11,7 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) throws IOException {
 
-        String path = "instances/100/competition/instance61_nreq100_nveh2_gamma91.txt";
+        String path = "instances/10000/test/instance31_nreq10000_nveh200_gamma8778.txt";
         Instance instance = new Instance(path);
 
         System.out.println("Instance name: " + instance.getInstanceName());
@@ -31,10 +31,10 @@ public class Main {
         List<List<Integer>> routes = gc.construct();
         instance.writeSolution("mySolution2.txt", routes, instance.getInstanceName());
 
-        /*
+
         PilotSearch pilotSearch = new PilotSearch(instance, 5,5);
         pilotSearch.solve();
-        */
+
     }
 }
 

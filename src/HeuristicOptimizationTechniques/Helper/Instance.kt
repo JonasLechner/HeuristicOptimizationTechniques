@@ -142,6 +142,19 @@ class Instance(relativePath: String) {
         return totalLength + prev.distance(depotLocation)
     }
 
+    fun computeRouteLengthDelta(route: Route, requestIndex:  Int): Int {
+
+        val (one, two) = getIndexPairForRequest(requestIndex)
+        val pickup = getLocationOf(one)
+        val dropoff = getLocationOf(two)
+
+        if (route.isEmpty()) return depotLocation.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(depotLocation)
+
+        return getLocationOf(route.last()).distance(pickup) +
+                pickup.distance(dropoff) + dropoff.distance(depotLocation) -
+                getLocationOf(route.last()).distance(depotLocation)
+    }
+
     @Throws(IOException::class)
     fun writeSolution(path: String, routes: Routes, instanceNameToWrite: String) {
         BufferedWriter(FileWriter(path)).use { bw ->
@@ -170,7 +183,7 @@ class Instance(relativePath: String) {
         throw IllegalArgumentException("Index out of range: $locationIndex")
     }
 
-    private fun getRequestById(requestId: Int): Request {
+    fun getRequestById(requestId: Int): Request {
         requestRangeLimit(requestId)
         return requests[requestId - 1]
     }

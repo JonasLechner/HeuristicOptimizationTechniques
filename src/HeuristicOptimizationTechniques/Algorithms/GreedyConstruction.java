@@ -3,6 +3,7 @@ package HeuristicOptimizationTechniques.Algorithms;
 import HeuristicOptimizationTechniques.Helper.Instance;
 import HeuristicOptimizationTechniques.Helper.Location;
 import HeuristicOptimizationTechniques.Helper.Request;
+import kotlin.Pair;
 
 import java.util.*;
 
@@ -12,20 +13,12 @@ public class GreedyConstruction {
     private int numberOfVehicles;
     private int vehicleCapacity;
     private int minNumberOfRequestsFulfilled;
-    private double fairnessWeight;
-
-    private Location depotLocation;
-
-    private List<Request> requests;
 
     public GreedyConstruction(Instance instance) {
         this.numberOfRequest = instance.getNumberOfRequests();
         this.numberOfVehicles = instance.getNumberOfVehicles();
         this.vehicleCapacity = instance.getVehicleCapacity();
         this.minNumberOfRequestsFulfilled = instance.getMinNumberOfRequestsFulfilled();
-        this.fairnessWeight = instance.getFairnessWeight();
-        this.depotLocation = instance.getDepotLocation();
-        this.requests = instance.getRequests();
         this.instance = instance;
     }
 
@@ -37,45 +30,38 @@ public class GreedyConstruction {
             routes.add(new ArrayList<>());
         }
 
-        // Order by cheapest distance from depot to pickup
+        // Order by cheapest demand
         List<Integer> order = new ArrayList<>();
         for (int i = 0; i < numberOfRequest; i++) {
-            order.add(i);
+            order.add(i + 1);
         }
-
-        order.sort(Comparator.comparingInt(i -> depotLocation.distance(requests.get(i).getPickupLocation())));
+        order.sort(Comparator.comparingInt(i -> instance.getRequestById(i).getDemand()));
 
         int alreadyServed = 0;
-        for (int i = 0; i < numberOfVehicles; i++) {
-            //TODO fix it logically check if             if (demand > vehicleCapacity) {...
-            int pickupIndex = 1 + order.get(i);
-            int dropOffIndex = 1 + numberOfRequest + order.get(i);
-            routes.get(i).add(pickupIndex);
-            routes.get(i).add(dropOffIndex);
-            ++alreadyServed;
-        }
-
         int count = 0;
-
         // Check all requests in sorted order
         for (int requestIndex : order) {
-            //first requests are assigned manually to avoid that one vehicle takes all routes
+            Pair<Integer, Integer> pair = instance.getIndexPairForRequest(requestIndex);
+            var pickup = pair.component1();
+            var dropoff = pair.component2();
+
+            //first requests are assigned manually to avoid that one vehicle takes all requests
             if (count < numberOfVehicles) {
+                routes.get(count).add(pickup);
+                routes.get(count).add(dropoff);
                 count++;
+                alreadyServed++;
                 continue;
             }
 
             if (alreadyServed >= minNumberOfRequestsFulfilled) {
                 break;
             }
-            Request r = requests.get(requestIndex);
+            Request r = instance.getRequestById(requestIndex);
             int demand = r.getDemand();
             if (demand > vehicleCapacity) {
                 continue; // not possible
             }
-
-            int pickupIndex = 1 + requestIndex;
-            int dropOffIndex = 1 + numberOfRequest + requestIndex;
 
             // check for which vehicle the extra cost is the smallest
             int bestK = -1;
@@ -83,9 +69,7 @@ public class GreedyConstruction {
 
             for (int k = 0; k < numberOfVehicles; k++) {
                 List<Integer> route = routes.get(k);
-
-                int delta = computeExtraCost(route, r);
-
+                int delta = instance.computeRouteLengthDelta(route, requestIndex);
                 if (delta < bestDelta) {
                     bestDelta = delta;
                     bestK = k;
@@ -93,30 +77,14 @@ public class GreedyConstruction {
             }
 
             // update route from best vehicle
-            routes.get(bestK).add(pickupIndex);
-            routes.get(bestK).add(dropOffIndex);
+            routes.get(bestK).add(pickup);
+            routes.get(bestK).add(dropoff);
 
             alreadyServed++;
         }
+        System.out.println("score: " + instance.computeObjectiveFunction(routes));
 
         return routes;
-    }
-
-    private int computeExtraCost(List<Integer> route, Request r) {
-
-        Location pickup = r.getPickupLocation();
-        Location dropoff = r.getDropOffLocation();
-
-        //whole distance from depot -> pickup -> dropoff -> depots
-        if (route.isEmpty()) {
-            return depotLocation.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(depotLocation);
-        }
-
-        int lastIndex = route.getLast();
-        Location lastLoc = instance.getLocationOf(lastIndex);
-
-        //extra cost is lastLocation -> pickup -> dropoff -> depot - lastLocation -> depot
-        return lastLoc.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(depotLocation) - lastLoc.distance(depotLocation);
     }
 
 }
