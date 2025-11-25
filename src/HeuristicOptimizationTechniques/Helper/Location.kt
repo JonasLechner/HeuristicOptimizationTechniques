@@ -13,4 +13,10 @@ data class Location(var x: Int, var y: Int, var index: Int) {
         val dy = (y - b.y).toDouble()
         return ceil(sqrt(dx * dx + dy * dy)).toInt()
     }
+
+    companion object {
+        fun distWithoutDepot(route: List<Location>): Int =
+            route.zipWithNext().sumOf { (a, b) -> a.distance(b) }
+    }
+
 }

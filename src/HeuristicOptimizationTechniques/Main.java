@@ -13,6 +13,7 @@ public class Main {
 
         String path = "instances/100/competition/instance61_nreq100_nveh2_gamma91.txt";
         Instance instance = new Instance(path);
+        Instance instance1k = new Instance("instances/1000/competition/instance61_nreq1000_nveh20_gamma879.txt");
 
         System.out.println("Instance name: " + instance.getInstanceName());
         System.out.println("Requests: " + instance.getNumberOfRequests());
@@ -33,8 +34,9 @@ public class Main {
         instance.writeSolution("mySolution2.txt", routes, instance.getInstanceName());
         */
 
-        PilotSearch pilotSearch = new PilotSearch(instance, 20,5);
-        pilotSearch.solve();
+        PilotSearch pilotSearch = new PilotSearch(instance, 10, 3);
+        var solu = pilotSearch.solve();
+        instance.writeSolution("mySolution2.txt", solu.getRoutes(), instance.getInstanceName());
     }
 }
 

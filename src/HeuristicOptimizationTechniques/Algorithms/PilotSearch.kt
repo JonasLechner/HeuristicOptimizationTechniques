@@ -3,33 +3,40 @@ package HeuristicOptimizationTechniques.Algorithms
 import HeuristicOptimizationTechniques.Helper.Candidate
 import HeuristicOptimizationTechniques.Helper.Instance
 import HeuristicOptimizationTechniques.Helper.Logger
+import HeuristicOptimizationTechniques.Helper.Route
 import HeuristicOptimizationTechniques.Helper.Solution
+import kotlin.math.min
 import kotlin.system.measureTimeMillis
 
 class PilotSearch(
     private val instance: Instance,
     private val maxRolloutDepth: Int,
-    private val maxCandidateCount: Int
+    private val maxExtensionAmount: Int
 ) : Heuristic {
     private val logger = Logger.getLogger(PilotSearch::class.java.simpleName)
     private val n: Int = instance.numberOfRequests
 
     override fun solve(): Solution {
-        val currentSolution = Solution(n) //solution where best candidate is added in each iteration
+        val currentSolution = Solution(
+            n,
+            instance.numberOfVehicles
+        ) //solution where best candidate is added in each iteration
         var bestCompleteSolution: Solution? = null //solution with best greedy extension
 
         val time = measureTimeMillis {
             logger.info("Running...")
 
-            while (currentSolution.fulfilledCount() < n) {
+            while (currentSolution.fulfilledCount() <= instance.minNumberOfRequestsFulfilled) {
                 var bestCost = Double.MAX_VALUE
                 var bestRollout: Solution? = null
                 var bestCandidate: Candidate? = null
 
                 //create one-step extensions (candidates) and take best ones
                 val candidates = instance.createAllValidCandidates(currentSolution)
-                    .sortedBy { instance.computeObjectiveFunction(currentSolution.routes) }
-                    .take(maxCandidateCount)
+                    .sortedBy { candidate ->
+                        instance.calculateObjectiveFromSolution(currentSolution, candidate)
+                    }
+                    .take(maxExtensionAmount)
 
                 logger.info("Iteration ${currentSolution.fulfilledCount()}, found ${candidates.size} candidates.")
                 if (candidates.isEmpty()) {
@@ -55,9 +62,15 @@ class PilotSearch(
                     break
                 }
 
-                instance.applyCandidateToSolution(currentSolution, bestCandidate)
+                val delta = instance.deltaCalculation(
+                    currentSolution,
+                    bestCandidate
+                )
+                currentSolution.addToRouteSum(bestCandidate.routeIndex, delta)
+
                 currentSolution.totalCost =
-                    instance.computeObjectiveFunction(currentSolution.routes)
+                    instance.calculateObjectiveFromSolution(currentSolution, bestCandidate)
+                instance.applyCandidateToSolution(currentSolution, bestCandidate)
 
                 val bestCompleteCount = bestCompleteSolution?.fulfilledCount() ?: 0
                 val bestCompleteCost = bestCompleteSolution?.totalCost ?: Double.MAX_VALUE
@@ -86,20 +99,62 @@ class PilotSearch(
             }
 
             val bestCandidate: Pair<Candidate, Double> = candidates.map { candidate ->
-                val cost = instance.calculateDelta(solution, candidate)
-                candidate to cost
+                val cost = instance.deltaCalculation(solution, candidate)
+                candidate to cost.toDouble()
             }.minBy { (_, cost) -> cost }
 
             //stop creating if next insertion does not improve total cost
             //and min amount of requests fulfilled
-            if (breakOffIfLocalMax && solution.fulfilledCount() >= instance.minNumberOfRequestsFulfilled && bestCandidate.second >= 0) {
+            if (breakOffIfLocalMax && solution.fulfilledCount() >= instance.minNumberOfRequestsFulfilled && bestCandidate.second > 0) {
                 return solution
             }
-
-            instance.applyCandidateToSolution(solution, bestCandidate.first)
+            solution.totalCost = instance.computeObjectiveFunction(solution.routes)
         }
 
-        solution.totalCost = instance.computeObjectiveFunction(solution.routes)
         return solution
     }
+
+    /*
+    private fun rollout2(solution: Solution, breakOffIfLocalMax: Boolean = true): Solution {
+        val unfulfilledRequests = instance.requests.filter { r -> solution.isFulfilled(r.id) }
+            .sortedByDescending { r -> r.demand } //TODO save, not recalculate on every rollout
+
+        for (r in unfulfilledRequests) {
+            var minVehilce: Int? = 0
+            var minDelta: Int = Int.MAX_VALUE
+
+            for (i in 0..<min(instance.numberOfVehicles, solution.routes.size)) {
+                val route: Route =
+                    solution.routes.getOrNull(i)
+                        ?: mutableListOf()
+
+                val delta = instance.computeRouteLengthDelta(
+                    route,
+                    r.id
+                )
+
+                if (delta < minDelta) {
+                    minVehilce = i
+                    minDelta = delta
+                }
+            }
+
+            if (minVehilce == null) {
+                break
+            }
+
+            val route: Route =
+                solution.routes.getOrNull(minVehilce)
+                    ?: mutableListOf()
+
+            instance.applyCandidateToSolution(
+                solution,
+                Candidate(r.id, minVehilce, route.size, route.size + 1)
+            )
+        }
+
+        return solution
+    }
+
+     */
 }

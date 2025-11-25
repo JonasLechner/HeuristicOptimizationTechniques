@@ -126,7 +126,54 @@ class Instance(relativePath: String) {
         }
 
         if (sumSquared == 0.0) return 1.0
-        return (sum * sum) / (numberOfRequests * sumSquared)
+        return (sum * sum) / (numberOfVehicles * sumSquared)
+    }
+
+    fun calculateObjectiveFromSolution(solution: Solution, candidate: Candidate): Double {
+        val delta = deltaCalculation(solution, candidate)
+
+        val newSum = solution.sum() + delta
+        val newSumSquared = solution.sumSquaredWithDelta(candidate.routeIndex, delta)
+
+        if (newSumSquared == 0) {
+            return 1.0
+        }
+
+        val fairness: Double =
+            (newSum.toDouble() * newSum.toDouble()) / (numberOfVehicles.toDouble() * newSumSquared.toDouble());
+
+        return newSum + fairnessWeight * (1 - fairness)
+    }
+
+    fun deltaCalculation(solution: Solution, candidate: Candidate): Int {
+        val (newLoad, newUnload) = getLocationPairForRequest(candidate.requestId)
+        val (newLoadIdx, newUnloadIdx) = getIndexPairForRequest(candidate.requestId)
+
+        //new route
+        if (candidate.routeIndex >= solution.routes.size) {
+            return computeRouteLength(mutableListOf(newLoadIdx, newUnloadIdx))
+        }
+
+        val route = solution.routes[candidate.routeIndex]
+
+        require(candidate.pickPos >= 0 && candidate.pickPos <= route.size) { "pickpos out of range" }
+        //append
+        val replaceLoc = if (route.size == candidate.pickPos) depotLocation else
+            getLocationOf(route[candidate.pickPos])
+
+        val prevOfReplace =
+            if (candidate.pickPos == 0) depotLocation else getLocationOf(route[candidate.pickPos - 1])
+
+        val delta = Location.distWithoutDepot(
+            listOf(
+                prevOfReplace,
+                newLoad,
+                newUnload,
+                replaceLoc
+            )
+        ) - prevOfReplace.distance(replaceLoc)
+
+        return delta
     }
 
     private fun computeRouteLength(route: Route): Int {
@@ -142,13 +189,14 @@ class Instance(relativePath: String) {
         return totalLength + prev.distance(depotLocation)
     }
 
-    fun computeRouteLengthDelta(route: Route, requestIndex:  Int): Int {
-
+    fun computeRouteLengthDelta(route: Route, requestIndex: Int): Int {
         val (one, two) = getIndexPairForRequest(requestIndex)
         val pickup = getLocationOf(one)
         val dropoff = getLocationOf(two)
 
-        if (route.isEmpty()) return depotLocation.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(depotLocation)
+        if (route.isEmpty()) return depotLocation.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(
+            depotLocation
+        )
 
         return getLocationOf(route.last()).distance(pickup) +
                 pickup.distance(dropoff) + dropoff.distance(depotLocation) -
@@ -207,6 +255,12 @@ class Instance(relativePath: String) {
     fun getIndexPairForRequest(requestId: Int): Pair<Int, Int> =
         Pair(getPickupIndexForRequestId(requestId), getDropOffIndexForRequestId(requestId))
 
+    fun getLocationPairForRequest(requestId: Int): Pair<Location, Location> {
+        val (id1, id2) = getIndexPairForRequest(requestId)
+
+        return Pair(getLocationOf(id1), getLocationOf(id2))
+    }
+
     fun getLocationOf(locationId: Int): Location {
         return locations[locationId - 1]
     }
@@ -225,7 +279,7 @@ class Instance(relativePath: String) {
         val withNewRoute = mutableListOf(pickup, dropOff)
 
         // add in new route
-        if (isCapacityWithinBounds(withNewRoute)) {
+        if (sol.routes.size < numberOfVehicles && isCapacityWithinBounds(withNewRoute)) {
             candidates.add(Candidate(requestId, sol.routes.size, 0, 1))
         }
 
