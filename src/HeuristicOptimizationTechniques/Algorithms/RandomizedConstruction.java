@@ -80,6 +80,7 @@ public class RandomizedConstruction {
                     for (int i = 0; i < route.size(); i+=2) {
                         int previousDropoff =  i == 0 ? -1 : route.get(i - 1);
                         int nextPickup =  i == route.size() - 2 ? -1 : route.get(i + 1);
+                        //double delta = instance.computeObjectiveFunction(routes, requestIndex, k);
                         double delta = instance.computeObjectiveFunction(routes, requestIndex, previousDropoff, nextPickup, k);
                         candidates.add(new Candidate(k, i, delta));
                     }
