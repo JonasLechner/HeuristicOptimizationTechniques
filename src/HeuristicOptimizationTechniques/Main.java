@@ -2,6 +2,7 @@ package HeuristicOptimizationTechniques;
 
 import HeuristicOptimizationTechniques.Algorithms.GreedyConstruction;
 import HeuristicOptimizationTechniques.Algorithms.PilotSearch;
+import HeuristicOptimizationTechniques.Algorithms.RandomizedConstruction;
 import HeuristicOptimizationTechniques.Helper.Instance;
 import HeuristicOptimizationTechniques.Helper.Request;
 
@@ -25,18 +26,23 @@ public class Main {
         System.out.println("Depot: " + instance.getDepotLocation());
 
         for (Request r : instance.getRequests()) {
-            System.out.println(r);
+            //System.out.println(r);
         }
 
-        /*
         GreedyConstruction gc = new GreedyConstruction(instance);
         List<List<Integer>> routes = gc.construct();
         instance.writeSolution("mySolution2.txt", routes, instance.getInstanceName());
-        */
+
+        RandomizedConstruction rc = new RandomizedConstruction(instance, 10, 3);
+        List<List<Integer>> routesRandom = rc.construct();
+        instance.writeSolution("mySolution2.txt", routesRandom, instance.getInstanceName());
 
         PilotSearch pilotSearch = new PilotSearch(instance, 10, 3);
         var solu = pilotSearch.solve();
         instance.writeSolution("mySolution2.txt", solu.getRoutes(), instance.getInstanceName());
+        /*PilotSearch pilotSearch = new PilotSearch(instance, 5,5);
+        pilotSearch.solve();*/
+
     }
 }
 
