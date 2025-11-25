@@ -1,10 +1,6 @@
 package HeuristicOptimizationTechniques.Helper
 
-import java.io.BufferedReader
-import java.io.BufferedWriter
-import java.io.FileReader
-import java.io.FileWriter
-import java.io.IOException
+import java.io.*
 
 class Instance(relativePath: String) {
     val instanceName: String
@@ -143,7 +139,6 @@ class Instance(relativePath: String) {
     }
 
     fun computeRouteLengthDelta(route: Route, requestIndex:  Int): Int {
-
         val (one, two) = getIndexPairForRequest(requestIndex)
         val pickup = getLocationOf(one)
         val dropoff = getLocationOf(two)
@@ -153,6 +148,22 @@ class Instance(relativePath: String) {
         return getLocationOf(route.last()).distance(pickup) +
                 pickup.distance(dropoff) + dropoff.distance(depotLocation) -
                 getLocationOf(route.last()).distance(depotLocation)
+    }
+
+    fun computeRouteLengthDelta(route: Route, requestIndex:  Int, prevRequestIndex:  Int, nextRequestIndex:  Int): Int {
+        val (one, two) = getIndexPairForRequest(requestIndex)
+        val pickup = getLocationOf(one)
+        val dropoff = getLocationOf(two)
+
+        if (route.isEmpty()) return depotLocation.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(depotLocation)
+
+        val dropoffPrev = if (prevRequestIndex == -1) depotLocation else getLocationOf(getDropOffIndexForRequestId(prevRequestIndex - numberOfRequests))
+
+        val pickupNext = if (nextRequestIndex == -1) depotLocation else getLocationOf(getPickupIndexForRequestId(nextRequestIndex - numberOfRequests))
+
+        return dropoffPrev.distance(pickup) +
+                pickup.distance(dropoff) + dropoff.distance(pickupNext) -
+                dropoffPrev.distance(pickupNext)
     }
 
     @Throws(IOException::class)
@@ -188,18 +199,18 @@ class Instance(relativePath: String) {
         return requests[requestId - 1]
     }
 
-    private fun getPickupIndexForRequestId(requestId: Int): Int {
+    fun getPickupIndexForRequestId(requestId: Int): Int {
         requestRangeLimit(requestId)
         return requestId
     }
 
     private fun requestRangeLimit(id: Int) {
         require(id > 0 && id <= numberOfRequests) {
-            "first request has index 1! last request has index n!"
+            "id was $id, however first request has index 1! last request has index $numberOfRequests!"
         }
     }
 
-    private fun getDropOffIndexForRequestId(requestId: Int): Int {
+    fun getDropOffIndexForRequestId(requestId: Int): Int {
         requestRangeLimit(requestId)
         return numberOfRequests + requestId
     }

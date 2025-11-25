@@ -64,7 +64,7 @@ public class GreedyConstruction {
             }
 
             // check for which vehicle the extra cost is the smallest
-            int bestK = -1;
+            /*int bestK = -1;
             int bestDelta = Integer.MAX_VALUE;
 
             for (int k = 0; k < numberOfVehicles; k++) {
@@ -74,11 +74,29 @@ public class GreedyConstruction {
                     bestDelta = delta;
                     bestK = k;
                 }
+            }*/
+
+            int bestK = -1;
+            int bestPosition = -1;
+            int bestDelta = Integer.MAX_VALUE;
+
+            for (int k = 0; k < numberOfVehicles; k++) {
+                List<Integer> route = routes.get(k);
+                for (int i = 0; i < route.size(); i+=2) {
+                    int previousDropoff =  i == 0 ? -1 : route.get(i - 1);
+                    int nextPickup =  i == route.size() - 2 ? -1 : route.get(i + 1);
+                    int delta = instance.computeRouteLengthDelta(route, requestIndex, previousDropoff, nextPickup);
+                    if (delta < bestDelta) {
+                        bestDelta = delta;
+                        bestK = k;
+                        bestPosition = i;
+                    }
+                }
             }
 
             // update route from best vehicle
-            routes.get(bestK).add(pickup);
-            routes.get(bestK).add(dropoff);
+            routes.get(bestK).add(bestPosition, pickup);
+            routes.get(bestK).add(bestPosition + 1, dropoff);
 
             alreadyServed++;
         }

@@ -32,8 +32,8 @@ public class Main {
         instance.writeSolution("mySolution2.txt", routes, instance.getInstanceName());
 
 
-        PilotSearch pilotSearch = new PilotSearch(instance, 5,5);
-        pilotSearch.solve();
+        /*PilotSearch pilotSearch = new PilotSearch(instance, 5,5);
+        pilotSearch.solve();*/
 
     }
 }
