@@ -84,7 +84,7 @@ public class GreedyConstruction {
             // update route from best vehicle
             routes.get(bestK).add(bestPosition, pickup);
             routes.get(bestK).add(bestPosition + 1, dropoff);
-            System.out.println("iteration: " + count);
+            //System.out.println("iteration: " + count);
             alreadyServed++;
         }
         System.out.println("score: " + instance.computeObjectiveFunction(routes));
