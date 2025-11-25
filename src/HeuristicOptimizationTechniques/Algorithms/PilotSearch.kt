@@ -10,8 +10,7 @@ class PilotSearch(
     private val instance: Instance,
     private val maxRolloutDepth: Int,
     private val maxCandidateCount: Int
-) :
-    Heuristic {
+) : Heuristic {
     private val logger = Logger.getLogger(PilotSearch::class.java.simpleName)
     private val n: Int = instance.numberOfRequests
 
@@ -29,7 +28,7 @@ class PilotSearch(
 
                 //create one-step extensions (candidates) and take best ones
                 val candidates = instance.createAllValidCandidates(currentSolution)
-                    .sortedBy { instance.calculateDelta(currentSolution, it) }
+                    .sortedBy { instance.computeObjectiveFunction(currentSolution.routes) }
                     .take(maxCandidateCount)
 
                 logger.info("Iteration ${currentSolution.fulfilledCount()}, found ${candidates.size} candidates.")

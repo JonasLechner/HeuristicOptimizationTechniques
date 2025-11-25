@@ -27,14 +27,14 @@ public class Main {
             System.out.println(r);
         }
 
+        /*
         GreedyConstruction gc = new GreedyConstruction(instance);
         List<List<Integer>> routes = gc.construct();
         instance.writeSolution("mySolution2.txt", routes, instance.getInstanceName());
-
-        /*
-        PilotSearch pilotSearch = new PilotSearch(instance, 5,5);
-        pilotSearch.solve();
         */
+
+        PilotSearch pilotSearch = new PilotSearch(instance, 20,5);
+        pilotSearch.solve();
     }
 }
 

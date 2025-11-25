@@ -232,8 +232,10 @@ class Instance(relativePath: String) {
 
     fun createAllValidCandidates(sol: Solution): List<Candidate> {
         val all = ArrayList<Candidate>()
-        for (rId in 0..this.numberOfRequests) {
-            if (sol.isFulfilled(rId)) continue
+        for (rId in 1..this.numberOfRequests) {
+            if (sol.isFulfilled(rId)) {
+                continue
+            }
             val candidates = createLastInsertionCandidatesPerRequest(sol, rId)
             all.addAll(candidates)
         }
