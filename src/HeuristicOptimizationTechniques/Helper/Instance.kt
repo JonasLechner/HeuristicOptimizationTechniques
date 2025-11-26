@@ -379,6 +379,30 @@ class Instance(relativePath: String) {
         return delta + ceil(route.size.toDouble() * 1).toInt()  //penalty
     }
 
+    fun computeRouteLengthDelta(
+        route: Route,
+        pickupIndex: Int,
+        dropoffIndex: Int,
+        previousDropoff: Int,
+        nextPickup: Int
+    ): Int {
+        val pickup = getLocationOf(pickupIndex)
+        val dropoff = getLocationOf(dropoffIndex)
+
+        if (route.isEmpty()) return depotLocation.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(
+            depotLocation
+        )
+
+        val previousDropoffLocation = if (previousDropoff == -1) depotLocation else getLocationOf(previousDropoff)
+
+        val nextPickupLocation = if (nextPickup == -1) depotLocation else getLocationOf(nextPickup)
+
+        val delta = previousDropoffLocation.distance(pickup) +
+                pickup.distance(dropoff) + dropoff.distance(nextPickupLocation) -
+                previousDropoffLocation.distance(nextPickupLocation)
+        return delta + ceil(route.size.toDouble() * 1).toInt()  //penalty
+    }
+
     @Throws(IOException::class)
     fun writeSolution(path: String, routes: Routes, instanceNameToWrite: String) {
         BufferedWriter(FileWriter(path)).use { bw ->

@@ -5,15 +5,15 @@ import HeuristicOptimizationTechniques.Helper.Solution
 
 class TwoSwapNeighborhood(private val instance: Instance) : Neighborhood {
 
-    override fun createNeighborhood(solution: Solution): List<Solution>? {
+    override fun createNeighborhood(solution: Solution): List<Solution> {
         val solutions = mutableListOf<Solution>()
         val longestRouteIndex = solution.getIndexOfLongestRoute()
         val longestRoute = solution.routes[longestRouteIndex]
         if (longestRoute.size <= 2) {
-            return null
+            return solutions
         }
 
-        for (i in 0..<longestRoute.size - 1) {
+        for (i in 0..<longestRoute.size) {
             val first = longestRoute[i]
             val second = longestRoute[i + 1]
             // if first == Pickup_i and second == Dropoff_i -> can't swap
@@ -35,6 +35,6 @@ class TwoSwapNeighborhood(private val instance: Instance) : Neighborhood {
             solutions.add(neighbor)
         }
 
-        return if (solutions.isEmpty()) null else solutions
+        return solutions
     }
 }
