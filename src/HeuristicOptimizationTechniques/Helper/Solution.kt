@@ -19,7 +19,7 @@ class Solution(val nRequests: Int, val routesSize: Int) {
         other.routes.forEach { r -> routes.add(r.toMutableList()) }
         fulfilledRequests.or(other.fulfilledRequests)
         totalCost = other.totalCost
-        sumsPerRoute = other.sumsPerRoute
+        sumsPerRoute = other.sumsPerRoute.toMutableList()
     }
 
     fun setFulfilled(requestId: Int) {
@@ -53,7 +53,7 @@ class Solution(val nRequests: Int, val routesSize: Int) {
         return sum
     }
 
-    fun addToRouteSum(routeIndex: Int, amount: Int) {
+    fun addDeltaToRouteCost(routeIndex: Int, amount: Int) {
         sumsPerRoute[routeIndex] += amount
     }
 

@@ -30,9 +30,13 @@ class PilotSearch(
                 var bestCandidate: Candidate? = null
 
                 //create one-step extensions (candidates) and take best ones
-                val candidates = instance.createAllValidCandidates(currentSolution)
+                val candidates = instance.createCandidates(currentSolution)
                     .sortedBy { candidate ->
-                        instance.calculateObjectiveFromSolution(currentSolution, candidate)
+                        val delta = instance.routeLengthDeltaCalculation(
+                            currentSolution,
+                            candidate
+                        )
+                        instance.calculateObjectiveFromSolution(currentSolution, candidate, delta)
                     }
                     .take(maxExtensionAmount)
 
@@ -48,10 +52,9 @@ class PilotSearch(
 
                     val rolloutSolution = rollout(tmp)
 
-                    val cost = instance.computeObjectiveFunction(rolloutSolution.routes)
-                    if (cost < bestCost) {
+                    if (rolloutSolution.totalCost < bestCost) {
                         bestCandidate = candidate
-                        bestCost = cost
+                        bestCost = rolloutSolution.totalCost
                         bestRollout = rolloutSolution
                     }
                 }
@@ -60,14 +63,6 @@ class PilotSearch(
                     break
                 }
 
-                val delta = instance.deltaCalculation(
-                    currentSolution,
-                    bestCandidate
-                )
-                currentSolution.addToRouteSum(bestCandidate.routeIndex, delta)
-
-                currentSolution.totalCost =
-                    instance.calculateObjectiveFromSolution(currentSolution, bestCandidate)
                 instance.applyCandidateToSolution(currentSolution, bestCandidate)
 
                 val bestCompleteCount = bestCompleteSolution?.fulfilledCount() ?: 0
@@ -90,15 +85,15 @@ class PilotSearch(
     //generate rollout for a particular solution
     private fun rollout(solution: Solution, breakOffIfLocalMax: Boolean = true): Solution {
         for (i in 1..maxRolloutDepth) {
-            val candidates = instance.createAllValidCandidates(solution)
+            val candidates = instance.createCandidates(solution)
 
             if (candidates.isEmpty()) {
                 return solution
             }
 
-            val bestCandidate: Pair<Candidate, Double> = candidates.map { candidate ->
-                val cost = instance.deltaCalculation(solution, candidate)
-                candidate to cost.toDouble()
+            val bestCandidate: Pair<Candidate, Int> = candidates.map { candidate ->
+                val cost = instance.routeLengthDeltaCalculation(solution, candidate)
+                candidate to cost
             }.minBy { (_, cost) -> cost }
 
             //stop creating if next insertion does not improve total cost
@@ -106,7 +101,8 @@ class PilotSearch(
             if (breakOffIfLocalMax && solution.fulfilledCount() >= instance.minNumberOfRequestsFulfilled && bestCandidate.second > 0) {
                 return solution
             }
-            solution.totalCost = instance.computeObjectiveFunction(solution.routes)
+
+            instance.applyCandidateToSolution(solution, bestCandidate.first)
         }
 
         return solution

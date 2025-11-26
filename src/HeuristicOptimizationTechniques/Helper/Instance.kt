@@ -177,11 +177,13 @@ class Instance(relativePath: String) {
         return (sum * sum) / (numberOfVehicles * sumSquared)
     }
 
-    fun calculateObjectiveFromSolution(solution: Solution, candidate: Candidate): Double {
-        val delta = deltaCalculation(solution, candidate)
-
-        val newSum = solution.sum() + delta
-        val newSumSquared = solution.sumSquaredWithDelta(candidate.routeIndex, delta)
+    fun calculateObjectiveFromSolution(
+        solution: Solution,
+        candidate: Candidate,
+        routeLengthDelta: Int
+    ): Double {
+        val newSum = solution.sum() + routeLengthDelta
+        val newSumSquared = solution.sumSquaredWithDelta(candidate.routeIndex, routeLengthDelta)
 
         if (newSumSquared == 0) {
             return 1.0
@@ -193,7 +195,8 @@ class Instance(relativePath: String) {
         return newSum + fairnessWeight * (1 - fairness)
     }
 
-    fun deltaCalculation(solution: Solution, candidate: Candidate): Int {
+    //calculates the delta in Route-
+    fun routeLengthDeltaCalculation(solution: Solution, candidate: Candidate): Int {
         val (newLoad, newUnload) = getLocationPairForRequest(candidate.requestId)
         val (newLoadIdx, newUnloadIdx) = getIndexPairForRequest(candidate.requestId)
 
@@ -476,7 +479,7 @@ class Instance(relativePath: String) {
         return candidates
     }
 
-    fun createAllValidCandidates(sol: Solution): List<Candidate> {
+    fun createCandidates(sol: Solution): List<Candidate> {
         val all = ArrayList<Candidate>()
         for (rId in 1..this.numberOfRequests) {
             if (sol.isFulfilled(rId)) {
@@ -491,8 +494,16 @@ class Instance(relativePath: String) {
     fun applyCandidateToSolution(solution: Solution, candidate: Candidate) {
         require(candidate.routeIndex <= solution.routes.size) { "routeIndex out of bounds" }
 
-        val (pickup, dropOff) = getIndexPairForRequest(candidate.requestId)
+        addNewCostToSolution(solution, candidate)
+        addCandidateToRoute(candidate, solution)
+        solution.setFulfilled(candidate.requestId)
+    }
 
+    private fun addCandidateToRoute(
+        candidate: Candidate,
+        solution: Solution
+    ) {
+        val (pickup, dropOff) = getIndexPairForRequest(candidate.requestId)
         if (candidate.routeIndex == solution.routes.size) {
             // add to new route
             solution.routes.add(mutableListOf(pickup, dropOff))
@@ -502,9 +513,16 @@ class Instance(relativePath: String) {
             toModify.add(candidate.pickPos, pickup)
             toModify.add(candidate.dropPos, dropOff)
         }
+    }
 
-        // set request to fulfilled
-        solution.setFulfilled(candidate.requestId)
+    private fun addNewCostToSolution(
+        solution: Solution,
+        candidate: Candidate
+    ) {
+        val routeLengthDelta = routeLengthDeltaCalculation(solution, candidate)
+        val totalCost = calculateObjectiveFromSolution(solution, candidate, routeLengthDelta)
+        solution.addDeltaToRouteCost(candidate.routeIndex, routeLengthDelta)
+        solution.totalCost = totalCost
     }
 
 
