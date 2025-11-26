@@ -19,7 +19,7 @@ class Solution(val nRequests: Int, val routesSize: Int) {
         other.routes.forEach { r -> routes.add(r.toMutableList()) }
         fulfilledRequests.or(other.fulfilledRequests)
         totalCost = other.totalCost
-        sumsPerRoute = other.sumsPerRoute
+        sumsPerRoute = other.sumsPerRoute.toMutableList()
     }
 
     fun setFulfilled(requestId: Int) {
@@ -55,6 +55,20 @@ class Solution(val nRequests: Int, val routesSize: Int) {
 
     fun addToRouteSum(routeIndex: Int, amount: Int) {
         sumsPerRoute[routeIndex] += amount
+    }
+
+    fun getIndexOfLongestRoute(): Int {
+        var maxIndex = -1
+        var maxValue = Int.MIN_VALUE
+
+        for (i in sumsPerRoute.indices) {
+            val value = sumsPerRoute[i]
+            if (value > maxValue) {
+                maxValue = value
+                maxIndex = i
+            }
+        }
+        return maxIndex
     }
 
     override fun toString(): String {

@@ -274,7 +274,7 @@ class Instance(relativePath: String) {
         return (sum * sum) / (numberOfVehicles * sumSquared)
     }
 
-    private fun computeRouteLength(route: Route): Int {
+    fun computeRouteLength(route: Route): Int {
         if (route.isEmpty()) return 0
         var totalLength = 0
 
@@ -394,8 +394,8 @@ class Instance(relativePath: String) {
         }
     }
 
-    private fun isPickupIndex(locationIndex: Int) = locationIndex in 1..numberOfRequests
-    private fun isDropIndex(locationIndex: Int) =
+    fun isPickupIndex(locationIndex: Int) = locationIndex in 1..numberOfRequests
+    fun isDropIndex(locationIndex: Int) =
         locationIndex in (numberOfRequests + 1)..(2 * numberOfRequests)
 
     private fun requestIdOfIndex(locationIndex: Int): Int {
