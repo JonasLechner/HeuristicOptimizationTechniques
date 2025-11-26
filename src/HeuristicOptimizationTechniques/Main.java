@@ -2,22 +2,22 @@ package HeuristicOptimizationTechniques;
 
 import HeuristicOptimizationTechniques.Algorithms.GreedyConstruction;
 import HeuristicOptimizationTechniques.Algorithms.PilotSearch;
+import HeuristicOptimizationTechniques.Algorithms.RandomizedConstruction;
 import HeuristicOptimizationTechniques.Helper.Instance;
-import HeuristicOptimizationTechniques.Helper.InstanceWrapper;
 import HeuristicOptimizationTechniques.Helper.Request;
-import HeuristicOptimizationTechniques.Helper.Solution;
 
 import java.io.IOException;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws IOException {
 
-        String path = "instances/50/test/instance40_nreq50_nveh2_gamma46.txt";
-
+        String path = "instances/100/competition/instance61_nreq100_nveh2_gamma91.txt";
         Instance instance = new Instance(path);
+        Instance instance1k = new Instance("instances/1000/competition/instance61_nreq1000_nveh20_gamma879.txt");
 
         System.out.println("Instance name: " + instance.getInstanceName());
-        System.out.println("Requests: " + instance.getNumberOfRequest());
+        System.out.println("Requests: " + instance.getNumberOfRequests());
         System.out.println("Vehicles: " + instance.getNumberOfVehicles());
         System.out.println("Capacity: " + instance.getVehicleCapacity());
         System.out.println("Gamma: " + instance.getMinNumberOfRequestsFulfilled());
@@ -26,16 +26,23 @@ public class Main {
         System.out.println("Depot: " + instance.getDepotLocation());
 
         for (Request r : instance.getRequests()) {
-            System.out.println(r);
+            //System.out.println(r);
         }
 
-        //GreedyConstruction gc = new GreedyConstruction(instance);
-        //List<List<Integer>> routes = gc.construct();
-        //gc.writeSolution("mySolution.txt", routes, instance.getInstanceName());
+        GreedyConstruction gc = new GreedyConstruction(instance);
+        List<List<Integer>> routes = gc.construct();
+        instance.writeSolution("mySolution2.txt", routes, instance.getInstanceName());
 
-        PilotSearch pilot = new PilotSearch(new InstanceWrapper(instance), null);
-        Solution solution = pilot.solve();
-        instance.writeSolution("mySolution.txt", solution.getRoutes(), instance.getInstanceName());
+        RandomizedConstruction rc = new RandomizedConstruction(instance, 10, 3);
+        List<List<Integer>> routesRandom = rc.construct();
+        instance.writeSolution("mySolution2.txt", routesRandom, instance.getInstanceName());
+
+        PilotSearch pilotSearch = new PilotSearch(instance, 10, 3);
+        var solu = pilotSearch.construct();
+        instance.writeSolution("mySolution2.txt", solu.getRoutes(), instance.getInstanceName());
+        /*PilotSearch pilotSearch = new PilotSearch(instance, 5,5);
+        pilotSearch.solve();*/
+
     }
 }
 
