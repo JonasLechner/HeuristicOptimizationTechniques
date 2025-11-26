@@ -38,7 +38,7 @@ public class Main {
         instance.writeSolution("mySolution2.txt", routesRandom, instance.getInstanceName());
 
         PilotSearch pilotSearch = new PilotSearch(instance, 10, 3);
-        var solu = pilotSearch.solve();
+        var solu = pilotSearch.construct();
         instance.writeSolution("mySolution2.txt", solu.getRoutes(), instance.getInstanceName());
         /*PilotSearch pilotSearch = new PilotSearch(instance, 5,5);
         pilotSearch.solve();*/

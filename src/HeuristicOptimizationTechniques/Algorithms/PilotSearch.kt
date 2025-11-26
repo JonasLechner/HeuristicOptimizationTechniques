@@ -3,20 +3,18 @@ package HeuristicOptimizationTechniques.Algorithms
 import HeuristicOptimizationTechniques.Helper.Candidate
 import HeuristicOptimizationTechniques.Helper.Instance
 import HeuristicOptimizationTechniques.Helper.Logger
-import HeuristicOptimizationTechniques.Helper.Route
 import HeuristicOptimizationTechniques.Helper.Solution
-import kotlin.math.min
 import kotlin.system.measureTimeMillis
 
 class PilotSearch(
     private val instance: Instance,
     private val maxRolloutDepth: Int,
     private val maxExtensionAmount: Int
-) : Heuristic {
+) : ConstructionHeuristic {
     private val logger = Logger.getLogger(PilotSearch::class.java.simpleName)
     private val n: Int = instance.numberOfRequests
 
-    override fun solve(): Solution {
+    override fun construct(): Solution {
         val currentSolution = Solution(
             n,
             instance.numberOfVehicles

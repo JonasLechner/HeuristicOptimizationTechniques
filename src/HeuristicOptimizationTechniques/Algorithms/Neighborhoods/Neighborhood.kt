@@ -1,4 +1,4 @@
-package HeuristicOptimizationTechniques.Algorithms.Neighbourhoods
+package HeuristicOptimizationTechniques.Algorithms.Neighborhoods
 
 import HeuristicOptimizationTechniques.Helper.Solution
 
