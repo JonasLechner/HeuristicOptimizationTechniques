@@ -1,6 +1,7 @@
 package HeuristicOptimizationTechniques.Helper
 
 import java.util.ArrayList
+import java.util.Arrays
 import java.util.BitSet
 
 typealias Route = MutableList<Int> //Tour without depot at start and end
@@ -75,5 +76,31 @@ class Solution(val nRequests: Int, val routesSize: Int) {
         return routes.joinToString(separator = System.lineSeparator()) { route ->
             route.joinToString(separator = " ")
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Solution
+
+        if (nRequests != other.nRequests) return false
+        if (routesSize != other.routesSize) return false
+        if (totalCost != other.totalCost) return false
+        if (routes != other.routes) return false
+        if (fulfilledRequests != other.fulfilledRequests) return false
+        if (sumsPerRoute != other.sumsPerRoute) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = nRequests
+        result = 31 * result + routesSize
+        result = 31 * result + totalCost.hashCode()
+        result = 31 * result + routes.hashCode()
+        result = 31 * result + fulfilledRequests.hashCode()
+        result = 31 * result + sumsPerRoute.hashCode()
+        return result
     }
 }

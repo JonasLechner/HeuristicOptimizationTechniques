@@ -12,9 +12,13 @@ class VariableNeighborhoodDescent(val neighborhoods: List<Neighborhood>) : Impro
         while (i < neighborhoods.size) {
             val neighborhood = neighborhoods[i]
 
-            val bestNeighbor = neighborhood
+            val neighbors = neighborhood
                 .createNeighbors(bestSolution)
-                .minBy { s -> s.totalCost }
+
+            if (neighbors.isEmpty()) {
+                return bestSolution
+            }
+            val bestNeighbor = neighbors.minBy { s -> s.totalCost } //best improvement
 
             if (bestNeighbor.totalCost < bestSolution.totalCost) {
                 bestSolution = bestNeighbor

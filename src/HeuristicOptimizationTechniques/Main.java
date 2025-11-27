@@ -1,10 +1,13 @@
 package HeuristicOptimizationTechniques;
 
 import HeuristicOptimizationTechniques.Algorithms.GreedyConstruction;
+import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.TwoSwapNeighborhood;
 import HeuristicOptimizationTechniques.Algorithms.PilotSearch;
 import HeuristicOptimizationTechniques.Algorithms.RandomizedConstruction;
+import HeuristicOptimizationTechniques.Algorithms.TabuSearch;
 import HeuristicOptimizationTechniques.Helper.Instance;
 import HeuristicOptimizationTechniques.Helper.Request;
+import HeuristicOptimizationTechniques.Helper.StopCondition;
 
 import java.io.IOException;
 import java.util.List;
@@ -42,6 +45,9 @@ public class Main {
 
         PilotSearch pilotSearch = new PilotSearch(instance1k, 3, 3);
         var solu = pilotSearch.construct();
+
+
+        TabuSearch tabu = new TabuSearch(new TwoSwapNeighborhood(instance), new StopCondition.Iterations(1000), 100);
 
         instance.writeSolution("mySolution2.txt", solu.getRoutes(), instance.getInstanceName());
     }

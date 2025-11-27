@@ -1,20 +1,24 @@
 package HeuristicOptimizationTechniques.Algorithms
 
 import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.Neighborhood
+import HeuristicOptimizationTechniques.Helper.StopConditionGuard
 import HeuristicOptimizationTechniques.Helper.Solution
 import HeuristicOptimizationTechniques.Helper.StepFunction
+import HeuristicOptimizationTechniques.Helper.StopCondition
 
 
 class LocalSearch(
     private val neighborhood: Neighborhood,
     private val stepFunction: StepFunction = StepFunction.BEST_IMPROVEMENT,
-    private val maxIterations: Int = 15
+    private val stopCondition: StopCondition
 ) : ImprovementHeuristic {
 
     override fun improve(solution: Solution): Solution {
         var bestSolution: Solution = solution
 
-        for (i in 1..maxIterations) {
+        val conditionGuard = StopConditionGuard(stopCondition)
+
+        while (conditionGuard.shouldContinue()) {
             val neighbors: List<Solution> =
                 neighborhood.createNeighbors(bestSolution)
 
