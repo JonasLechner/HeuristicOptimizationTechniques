@@ -29,6 +29,7 @@ public class Main {
             //System.out.println(r);
         }
 
+        /*
         GreedyConstruction gc = new GreedyConstruction(instance);
         List<List<Integer>> routes = gc.construct();
         instance.writeSolution("mySolution2.txt", routes, instance.getInstanceName());
@@ -37,12 +38,12 @@ public class Main {
         List<List<Integer>> routesRandom = rc.construct();
         instance.writeSolution("mySolution2.txt", routesRandom, instance.getInstanceName());
 
-        PilotSearch pilotSearch = new PilotSearch(instance, 10, 3);
-        var solu = pilotSearch.construct();
-        instance.writeSolution("mySolution2.txt", solu.getRoutes(), instance.getInstanceName());
-        /*PilotSearch pilotSearch = new PilotSearch(instance, 5,5);
-        pilotSearch.solve();*/
+         */
 
+        PilotSearch pilotSearch = new PilotSearch(instance1k, 3, 3);
+        var solu = pilotSearch.construct();
+
+        instance.writeSolution("mySolution2.txt", solu.getRoutes(), instance.getInstanceName());
     }
 }
 

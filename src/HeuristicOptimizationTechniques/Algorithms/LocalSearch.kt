@@ -24,11 +24,11 @@ class LocalSearch(
 
             when (stepFunction) {
                 StepFunction.FIRST_IMPROVEMENT -> {
-                    val best = neighbors
+                    val firstBest = neighbors
                         .firstOrNull { solution -> solution.totalCost < bestSolution.totalCost }
 
-                    if (best != null) {
-                        bestSolution = best
+                    if (firstBest != null) {
+                        bestSolution = firstBest
                     } else {
                         //local max
                         return bestSolution
@@ -36,11 +36,11 @@ class LocalSearch(
                 }
 
                 StepFunction.BEST_IMPROVEMENT -> {
-                    val best =
+                    val bestInNeighborhood =
                         neighbors.minBy { solution -> solution.totalCost }
 
-                    if (best.totalCost < bestSolution.totalCost) {
-                        bestSolution = best
+                    if (bestInNeighborhood.totalCost < bestSolution.totalCost) {
+                        bestSolution = bestInNeighborhood
                     } else {
                         //local max
                         return bestSolution

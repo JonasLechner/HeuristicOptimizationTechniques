@@ -53,7 +53,7 @@ class Solution(val nRequests: Int, val routesSize: Int) {
         return sum
     }
 
-    fun addToRouteSum(routeIndex: Int, amount: Int) {
+    fun addDeltaToRouteCost(routeIndex: Int, amount: Int) {
         sumsPerRoute[routeIndex] += amount
     }
 
