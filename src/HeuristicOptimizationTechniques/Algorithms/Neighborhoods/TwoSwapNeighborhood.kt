@@ -5,12 +5,12 @@ import HeuristicOptimizationTechniques.Helper.Solution
 
 class TwoSwapNeighborhood(private val instance: Instance) : Neighborhood {
 
-    override fun createNeighborhood(solution: Solution): List<Solution>? {
+    override fun createNeighbors(solution: Solution): List<Solution> {
         val solutions = mutableListOf<Solution>()
         val longestRouteIndex = solution.getIndexOfLongestRoute()
         val longestRoute = solution.routes[longestRouteIndex]
         if (longestRoute.size <= 2) {
-            return null
+            return emptyList()
         }
 
         for (i in 0..<longestRoute.size - 1) {
@@ -35,6 +35,6 @@ class TwoSwapNeighborhood(private val instance: Instance) : Neighborhood {
             solutions.add(neighbor)
         }
 
-        return if (solutions.isEmpty()) null else solutions
+        return solutions
     }
 }

@@ -16,7 +16,7 @@ class LocalSearch(
 
         for (i in 1..maxIterations) {
             val neighbors: List<Solution> =
-                neighborhood.createNeighborhood(bestSolution)
+                neighborhood.createNeighbors(bestSolution)
 
             if (neighbors.isEmpty()) {
                 return bestSolution

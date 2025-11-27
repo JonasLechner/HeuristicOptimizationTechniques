@@ -8,5 +8,5 @@ interface Neighborhood {
     - VehicleSwap: Move one request(pickup + dropoff) to another vehicle. Determine position with instance.computeObjectiveFunction(routes, requestIndex, k);
     - FairnessSwap: Move one request from vehicle with most request to n vehicles with least request -> optimize fairness
      */
-    fun createNeighborhood(solution : Solution) : List<Solution>?
+    fun createNeighbors(solution : Solution) : List<Solution>
 }
