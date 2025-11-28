@@ -1,8 +1,8 @@
 package HeuristicOptimizationTechniques.Algorithms.Neighborhoods
 
-import HeuristicOptimizationTechniques.Algorithms.LocalSearch
 import HeuristicOptimizationTechniques.Helper.Instance
 import HeuristicOptimizationTechniques.Helper.Logger
+import HeuristicOptimizationTechniques.Helper.Route
 import HeuristicOptimizationTechniques.Helper.Solution
 
 class VehicleMoveNeighborhood(private val instance: Instance) : Neighborhood {
@@ -19,27 +19,74 @@ class VehicleMoveNeighborhood(private val instance: Instance) : Neighborhood {
         var biggestDelta = Integer.MIN_VALUE
         var worstPickup = -1
         var worstDropoff = -1
-        for (i in 0..<longestRoute.size step 2) {
-            val pickup = longestRoute[i]
-            val dropoff = longestRoute[i + 1]
-            var previousDropoff = -1 //depot index
-            var nextPickup = -1
-            if (i != 0) {
-                previousDropoff = longestRoute[i - 1]
+        for (i in 0..<longestRoute.size) {
+            var pickup = -1;
+            var dropoff = -1
+            var pickupIndex = -1
+            var dropoffIndex = -1
+            if (instance.isPickupIndex(longestRoute[i])) {
+                pickup = longestRoute[i]
+                pickupIndex = i
+                dropoff = longestRoute[i] + instance.numberOfRequests
+                //find corresponding dropoffindex
+                for (i_2 in 0..<longestRoute.size) {
+                    if (longestRoute[i_2] == dropoff) {
+                        dropoffIndex = i_2
+                        break
+                    }
+                }
+
+            } else {
+                continue
             }
-            if (i + 1 != longestRoute.size - 1) {
-                nextPickup = longestRoute[i + 2]
-            }
-            val distanceDelta = instance.computeRouteLengthDelta(longestRoute, pickup, dropoff, previousDropoff, nextPickup)
-            if (distanceDelta > biggestDelta) {
-                worstPickup = i
-                worstDropoff = i + 1
-                biggestDelta = distanceDelta
+
+            if (pickupIndex + 1 == dropoffIndex) {
+                var previousDropoff = -1 //depot index
+                var nextPickup = -1
+                if (i != 0) {
+                    previousDropoff = longestRoute[i - 1]
+                }
+                if (i + 1 != longestRoute.size - 1) {
+                    nextPickup = longestRoute[i + 2]
+                }
+                val distanceDelta = instance.computeRouteLengthDelta(longestRoute, pickup, dropoff, previousDropoff, nextPickup)
+                if (distanceDelta > biggestDelta) {
+                    worstPickup = i
+                    worstDropoff = i + 1
+                    biggestDelta = distanceDelta
+                }
+            } else {
+                var previousPointForPickup = -1 //depot index
+                var nextPointForPickup = -1
+                if (i != 0) {
+                    previousPointForPickup = longestRoute[pickupIndex - 1]
+                }
+                if (i + 1 < longestRoute.size) {
+                    nextPointForPickup = longestRoute[pickupIndex + 1]
+                }
+
+                var previousPointForDropoff = -1 //depot index
+                var nextPointForDropoff = -1
+                if (dropoffIndex != 0) {
+                    previousPointForDropoff = longestRoute[dropoffIndex - 1]
+                }
+                if (dropoffIndex + 1 < longestRoute.size) {
+                    nextPointForDropoff = longestRoute[dropoffIndex + 1]
+                }
+                val distanceDelta = instance.computeRouteLengthDelta(longestRoute, pickup, pickup,
+                    previousPointForPickup, nextPointForPickup) +
+                        instance.computeRouteLengthDelta(longestRoute, dropoff, dropoff,
+                            previousPointForDropoff, nextPointForDropoff)
+                if (distanceDelta > biggestDelta) {
+                    worstPickup = pickupIndex
+                    worstDropoff = dropoffIndex
+                    biggestDelta = distanceDelta
+                }
             }
         }
 
         for (i in 0 ..<instance.numberOfVehicles) {
-            //move route to all vehicles except itself
+            //move route to all vehicles except itself and add to the start
             if (i == longestRouteIndex) {
                 continue
             }
@@ -62,7 +109,6 @@ class VehicleMoveNeighborhood(private val instance: Instance) : Neighborhood {
             neighbor.totalCost = instance.computeObjectiveFunction(neighbor.routes)
 
             solutions.add(neighbor)
-            logger.info("neighbor with cost: ${neighbor.totalCost}")
         }
         return solutions
     }

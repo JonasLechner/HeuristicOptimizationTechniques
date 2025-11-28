@@ -26,7 +26,7 @@ class VehicleSwapNeighborhood (private val instance: Instance) : Neighborhood {
                 if (j != 0) {
                     previousDropoff = currentRoute[j - 1]
                 }
-                if (j + 1 != currentRoute.size - 1) {
+                if (j + 2 < currentRoute.size) {
                     nextPickup = currentRoute[j + 2]
                 }
                 val distanceDelta = instance.computeRouteLengthDelta(currentRoute, pickup, dropoff, previousDropoff, nextPickup)

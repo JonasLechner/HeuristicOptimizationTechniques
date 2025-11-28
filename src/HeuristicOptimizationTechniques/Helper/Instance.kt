@@ -379,7 +379,7 @@ class Instance(relativePath: String) {
         val delta = previousDropoffLocation.distance(pickup) +
                 pickup.distance(dropoff) + dropoff.distance(nextPickupLocation) -
                 previousDropoffLocation.distance(nextPickupLocation)
-        return delta + ceil(route.size.toDouble() * 1).toInt()  //penalty
+        return delta
     }
 
     fun computeRouteLengthDelta(
@@ -403,7 +403,7 @@ class Instance(relativePath: String) {
         val delta = previousDropoffLocation.distance(pickup) +
                 pickup.distance(dropoff) + dropoff.distance(nextPickupLocation) -
                 previousDropoffLocation.distance(nextPickupLocation)
-        return delta + ceil(route.size.toDouble() * 1).toInt()  //penalty
+        return delta
     }
 
     @Throws(IOException::class)
