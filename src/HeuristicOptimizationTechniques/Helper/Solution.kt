@@ -57,6 +57,20 @@ class Solution(val nRequests: Int, val routesSize: Int) {
         sumsPerRoute[routeIndex] += amount
     }
 
+    fun getIndexOfLongestRoute(): Int {
+        var maxIndex = -1
+        var maxValue = Int.MIN_VALUE
+
+        for (i in sumsPerRoute.indices) {
+            val value = sumsPerRoute[i]
+            if (value > maxValue) {
+                maxValue = value
+                maxIndex = i
+            }
+        }
+        return maxIndex
+    }
+
     override fun toString(): String {
         return routes.joinToString(separator = System.lineSeparator()) { route ->
             route.joinToString(separator = " ")

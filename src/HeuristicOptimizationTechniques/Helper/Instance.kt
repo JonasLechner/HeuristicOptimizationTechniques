@@ -277,7 +277,7 @@ class Instance(relativePath: String) {
         return (sum * sum) / (numberOfVehicles * sumSquared)
     }
 
-    private fun computeRouteLength(route: Route): Int {
+    fun computeRouteLength(route: Route): Int {
         if (route.isEmpty()) return 0
         var totalLength = 0
 
@@ -382,6 +382,30 @@ class Instance(relativePath: String) {
         return delta + ceil(route.size.toDouble() * 1).toInt()  //penalty
     }
 
+    fun computeRouteLengthDelta(
+        route: Route,
+        pickupIndex: Int,
+        dropoffIndex: Int,
+        previousDropoff: Int,
+        nextPickup: Int
+    ): Int {
+        val pickup = getLocationOf(pickupIndex)
+        val dropoff = getLocationOf(dropoffIndex)
+
+        if (route.isEmpty()) return depotLocation.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(
+            depotLocation
+        )
+
+        val previousDropoffLocation = if (previousDropoff == -1) depotLocation else getLocationOf(previousDropoff)
+
+        val nextPickupLocation = if (nextPickup == -1) depotLocation else getLocationOf(nextPickup)
+
+        val delta = previousDropoffLocation.distance(pickup) +
+                pickup.distance(dropoff) + dropoff.distance(nextPickupLocation) -
+                previousDropoffLocation.distance(nextPickupLocation)
+        return delta + ceil(route.size.toDouble() * 1).toInt()  //penalty
+    }
+
     @Throws(IOException::class)
     fun writeSolution(path: String, routes: Routes, instanceNameToWrite: String) {
         BufferedWriter(FileWriter(path)).use { bw ->
@@ -397,11 +421,11 @@ class Instance(relativePath: String) {
         }
     }
 
-    private fun isPickupIndex(locationIndex: Int) = locationIndex in 1..numberOfRequests
-    private fun isDropIndex(locationIndex: Int) =
+    fun isPickupIndex(locationIndex: Int) = locationIndex in 1..numberOfRequests
+    fun isDropIndex(locationIndex: Int) =
         locationIndex in (numberOfRequests + 1)..(2 * numberOfRequests)
 
-    private fun requestIdOfIndex(locationIndex: Int): Int {
+    fun requestIdOfIndex(locationIndex: Int): Int {
         if (isPickupIndex(locationIndex)) {
             return locationIndex
         } else if (isDropIndex(locationIndex)) {
