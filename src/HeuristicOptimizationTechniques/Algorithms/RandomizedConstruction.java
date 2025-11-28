@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Logger;
 
 public class RandomizedConstruction implements ConstructionHeuristic{
     private final Instance instance;
@@ -19,8 +20,10 @@ public class RandomizedConstruction implements ConstructionHeuristic{
     private final int minNumberOfRequestsFulfilled;
     private final int numberOfIterations;
     private final int numberOfCandidatesToKeep;
+    private final Logger logger;
 
     public RandomizedConstruction(Instance instance, int numberOfIterations, int numberOfCandidatesToKeep){
+        this.logger = Logger.getLogger(RandomizedConstruction.class.getName());
         this.numberOfRequest = instance.getNumberOfRequests();
         this.numberOfVehicles = instance.getNumberOfVehicles();
         this.vehicleCapacity = instance.getVehicleCapacity();
@@ -85,8 +88,8 @@ public class RandomizedConstruction implements ConstructionHeuristic{
                 for (int i = 0; i < route.size(); i+=2) {
                     int previousDropoff =  i == 0 ? -1 : route.get(i - 1);
                     int nextPickup =  i == route.size() - 2 ? -1 : route.get(i + 1);
-                    //double delta = instance.computeObjectiveFunction(routes, requestIndex, k);
-                    double delta = instance.computeObjectiveFunction(routes, requestIndex, previousDropoff, nextPickup, k);
+                    double delta = instance.computeObjectiveFunction(routes, requestIndex, k);
+                    //double delta = instance.computeObjectiveFunction(routes, requestIndex, previousDropoff, nextPickup, k);
                     candidates.add(new Candidate(k, i, delta));
                 }
 
@@ -131,7 +134,7 @@ public class RandomizedConstruction implements ConstructionHeuristic{
         }
 
         solution.setTotalCost(bestObjectiveFunction);
-
+        logger.info("Initial solution with cost: " +  solution.getTotalCost());
         return solution;
     }
 

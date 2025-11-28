@@ -2,6 +2,8 @@ package HeuristicOptimizationTechniques;
 
 import HeuristicOptimizationTechniques.Algorithms.*;
 import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.TwoSwapNeighborhood;
+import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.VehicleMoveNeighborhood;
+import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.VehicleSwapNeighborhood;
 import HeuristicOptimizationTechniques.Helper.Instance;
 import HeuristicOptimizationTechniques.Helper.Request;
 import HeuristicOptimizationTechniques.Helper.Solution;
@@ -34,9 +36,9 @@ public class Main {
         List<List<Integer>> routes = gc.construct();
         instance.writeSolution("mySolution2.txt", routes, instance.getInstanceName());*/
 
-        /*RandomizedConstruction rc = new RandomizedConstruction(instance, 10, 3);
+        RandomizedConstruction rc = new RandomizedConstruction(instance, 1, 10);
         Solution solution = rc.construct();
-        instance.writeSolution("mySolution2.txt", solution.getRoutes(), instance.getInstanceName());*/
+        instance.writeSolution("mySolution2.txt", solution.getRoutes(), instance.getInstanceName());
 
         /*PilotSearch pilotSearch = new PilotSearch(instance, 10, 3);
         var solu = pilotSearch.construct();
@@ -44,13 +46,14 @@ public class Main {
         /*PilotSearch pilotSearch = new PilotSearch(instance, 5,5);
         pilotSearch.solve();*/
 
-        /*LocalSearch localSearch = new LocalSearch(new TwoSwapNeighborhood(instance), StepFunction.BEST_IMPROVEMENT, 15);
-        var solulu = localSearch.improve(solu);
-        instance.writeSolution("mySolution3.txt", solulu.getRoutes(), instance.getInstanceName());*/
+        LocalSearch localSearch = new LocalSearch(new VehicleMoveNeighborhood(instance), StepFunction.BEST_IMPROVEMENT, 15);
+        var solulu = localSearch.improve(solution);
+        instance.writeSolution("mySolution3.txt", solulu.getRoutes(), instance.getInstanceName());
+        System.out.println("Instance totalcost: " + solulu.getTotalCost());
 
-        GRASP grasp = new GRASP(instance, 15, new TwoSwapNeighborhood(instance));
+        /*GRASP grasp = new GRASP(instance, 15, new TwoSwapNeighborhood(instance));
         var soluludelulu = grasp.construct();
-        instance.writeSolution("mySolution4.txt", soluludelulu.getRoutes(), instance.getInstanceName());
+        instance.writeSolution("mySolution4.txt", soluludelulu.getRoutes(), instance.getInstanceName());*/
     }
 }
 
