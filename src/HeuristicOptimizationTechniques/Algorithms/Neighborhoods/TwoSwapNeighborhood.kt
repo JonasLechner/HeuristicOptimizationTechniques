@@ -9,7 +9,6 @@ class TwoSwapNeighborhood(private val instance: Instance) : Neighborhood {
     private val logger = Logger.getLogger(TwoSwapNeighborhood::class.java.simpleName)
 
     override fun createNeighborhood(solution: Solution): List<Solution> {
-        logger.info("Creating TwoSwapNeighborhood.")
         val solutions = mutableListOf<Solution>()
         val longestRouteIndex = solution.getIndexOfLongestRoute()
         val longestRoute = solution.routes[longestRouteIndex]

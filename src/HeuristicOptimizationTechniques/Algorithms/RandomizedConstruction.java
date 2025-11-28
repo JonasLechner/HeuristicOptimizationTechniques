@@ -2,14 +2,16 @@ package HeuristicOptimizationTechniques.Algorithms;
 
 import HeuristicOptimizationTechniques.Helper.Instance;
 import HeuristicOptimizationTechniques.Helper.Request;
+import HeuristicOptimizationTechniques.Helper.Solution;
 import kotlin.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
-public class RandomizedConstruction {
+public class RandomizedConstruction implements ConstructionHeuristic{
     private final Instance instance;
     private final int numberOfRequest;
     private final int numberOfVehicles;
@@ -18,7 +20,7 @@ public class RandomizedConstruction {
     private final int numberOfIterations;
     private final int numberOfCandidatesToKeep;
 
-    public RandomizedConstruction(Instance instance, int numberOfIterations, int numberOfCandidatesToKeep) {
+    public RandomizedConstruction(Instance instance, int numberOfIterations, int numberOfCandidatesToKeep){
         this.numberOfRequest = instance.getNumberOfRequests();
         this.numberOfVehicles = instance.getNumberOfVehicles();
         this.vehicleCapacity = instance.getVehicleCapacity();
@@ -28,7 +30,8 @@ public class RandomizedConstruction {
         this.numberOfCandidatesToKeep = numberOfCandidatesToKeep;
     }
 
-    public List<List<Integer>> construct() {
+    @NotNull
+    public Solution construct() {
 
         // Order by cheapest demand
         List<Integer> order = new ArrayList<>();
@@ -37,8 +40,8 @@ public class RandomizedConstruction {
         }
         order.sort(Comparator.comparingInt(i -> instance.getRequestById(i).getDemand()));
 
-        List<List<Integer>> bestRoutes = new ArrayList<>();
         double bestObjectiveFunction = Double.MAX_VALUE;
+        List<List<Integer>> bestRoutes = new ArrayList<>();
 
         for (int it = 0; it < numberOfIterations; ++it) {
             // Append route for each vehicle
@@ -75,15 +78,16 @@ public class RandomizedConstruction {
 
                 List<Candidate> candidates = new ArrayList<>();
 
-                for (int k = 0; k < numberOfVehicles; k++) {
-                    List<Integer> route = routes.get(k);
-                    for (int i = 0; i < route.size(); i+=2) {
-                        int previousDropoff =  i == 0 ? -1 : route.get(i - 1);
-                        int nextPickup =  i == route.size() - 2 ? -1 : route.get(i + 1);
-                        //double delta = instance.computeObjectiveFunction(routes, requestIndex, k);
-                        double delta = instance.computeObjectiveFunction(routes, requestIndex, previousDropoff, nextPickup, k);
-                        candidates.add(new Candidate(k, i, delta));
-                    }
+                //adding each request to random vehicle
+                Random random = new Random();
+                int k = random.nextInt(numberOfVehicles);
+                List<Integer> route = routes.get(k);
+                for (int i = 0; i < route.size(); i+=2) {
+                    int previousDropoff =  i == 0 ? -1 : route.get(i - 1);
+                    int nextPickup =  i == route.size() - 2 ? -1 : route.get(i + 1);
+                    //double delta = instance.computeObjectiveFunction(routes, requestIndex, k);
+                    double delta = instance.computeObjectiveFunction(routes, requestIndex, previousDropoff, nextPickup, k);
+                    candidates.add(new Candidate(k, i, delta));
                 }
 
                 if (candidates.isEmpty()) {
@@ -94,8 +98,7 @@ public class RandomizedConstruction {
 
                 int limit = Math.min(numberOfCandidatesToKeep, candidates.size());
 
-                Random rnd = new Random();
-                Candidate chosen = candidates.get(rnd.nextInt(limit));
+                Candidate chosen = candidates.get(random.nextInt(limit));
 
                 // update route from best vehicle
                 routes.get(chosen.vehicle).add(chosen.position, pickup);
@@ -103,16 +106,33 @@ public class RandomizedConstruction {
 
                 alreadyServed++;
             }
-            System.out.println("score randomized: " + instance.computeObjectiveFunction(routes));
-            if (instance.computeObjectiveFunction(routes) < bestObjectiveFunction) {
-                bestObjectiveFunction = instance.computeObjectiveFunction(routes);
+            double objectivefunction = instance.computeObjectiveFunction(routes);
+            if (objectivefunction < bestObjectiveFunction) {
+                bestObjectiveFunction = objectivefunction;
                 bestRoutes = routes;
             }
         }
 
-        System.out.println("best objective is: " + instance.computeObjectiveFunction(bestRoutes));
 
-        return bestRoutes;
+        Solution solution = new Solution(numberOfRequest, numberOfVehicles);
+        for (int v = 0; v < numberOfVehicles; v++) {
+            solution.getRoutes().add(new ArrayList<>(bestRoutes.get(v)));
+
+            int routeLength = instance.computeRouteLength(bestRoutes.get(v));
+            solution.getSumsPerRoute().set(v, routeLength);
+        }
+
+        // Mark fulfilled requests
+        for (List<Integer> route : bestRoutes) {
+            for (int loc : route) {
+                int reqId = instance.requestIdOfIndex(loc);
+                solution.setFulfilled(reqId);
+            }
+        }
+
+        solution.setTotalCost(bestObjectiveFunction);
+
+        return solution;
     }
 
     private static class Candidate {

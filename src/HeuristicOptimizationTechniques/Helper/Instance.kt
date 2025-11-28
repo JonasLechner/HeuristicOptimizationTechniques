@@ -422,7 +422,7 @@ class Instance(relativePath: String) {
     fun isDropIndex(locationIndex: Int) =
         locationIndex in (numberOfRequests + 1)..(2 * numberOfRequests)
 
-    private fun requestIdOfIndex(locationIndex: Int): Int {
+    fun requestIdOfIndex(locationIndex: Int): Int {
         if (isPickupIndex(locationIndex)) {
             return locationIndex
         } else if (isDropIndex(locationIndex)) {
