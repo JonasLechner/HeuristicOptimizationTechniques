@@ -26,7 +26,7 @@ class VehicleSwapNeighborhood(private val instance: Instance) : Neighborhood {
             if (i + 1 != longestRoute.size - 1) {
                 nextPickup = longestRoute[i + 2]
             }
-            var distanceDelta = instance.computeRouteLengthDelta(longestRoute, pickup, dropoff, previousDropoff, nextPickup)
+            val distanceDelta = instance.computeRouteLengthDelta(longestRoute, pickup, dropoff, previousDropoff, nextPickup)
             if (distanceDelta > biggestDelta) {
                 worstPickup = i
                 worstDropoff = i + 1
@@ -49,8 +49,8 @@ class VehicleSwapNeighborhood(private val instance: Instance) : Neighborhood {
             fromRoute.removeAt(worstDropoff)
             fromRoute.removeAt(worstPickup)
 
-            toRoute.add(pickupLoc)
-            toRoute.add(dropoffLoc)
+            toRoute.add(0, pickupLoc)
+            toRoute.add(1, dropoffLoc)
 
             neighbor.sumsPerRoute[longestRouteIndex] = instance.computeRouteLength(fromRoute)
             neighbor.sumsPerRoute[i] = instance.computeRouteLength(toRoute)

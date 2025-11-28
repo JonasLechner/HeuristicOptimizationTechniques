@@ -1,11 +1,15 @@
 package HeuristicOptimizationTechniques.Algorithms.Neighborhoods
 
+import HeuristicOptimizationTechniques.Algorithms.LocalSearch
 import HeuristicOptimizationTechniques.Helper.Instance
+import HeuristicOptimizationTechniques.Helper.Logger
 import HeuristicOptimizationTechniques.Helper.Solution
 
 class TwoSwapNeighborhood(private val instance: Instance) : Neighborhood {
+    private val logger = Logger.getLogger(TwoSwapNeighborhood::class.java.simpleName)
 
     override fun createNeighborhood(solution: Solution): List<Solution> {
+        logger.info("Creating TwoSwapNeighborhood.")
         val solutions = mutableListOf<Solution>()
         val longestRouteIndex = solution.getIndexOfLongestRoute()
         val longestRoute = solution.routes[longestRouteIndex]
@@ -13,7 +17,7 @@ class TwoSwapNeighborhood(private val instance: Instance) : Neighborhood {
             return solutions
         }
 
-        for (i in 0..<longestRoute.size) {
+        for (i in 0..<longestRoute.size - 1) {
             val first = longestRoute[i]
             val second = longestRoute[i + 1]
             // if first == Pickup_i and second == Dropoff_i -> can't swap
@@ -27,11 +31,11 @@ class TwoSwapNeighborhood(private val instance: Instance) : Neighborhood {
             val temp = newRoute[i]
             newRoute[i] = newRoute[i + 1]
             newRoute[i + 1] = temp
-
+            neighbor.routes[longestRouteIndex] = newRoute
             val newLen = instance.computeRouteLength(newRoute)
             neighbor.sumsPerRoute[longestRouteIndex] = newLen
 
-            //neighbor.totalCost = instance.computeObjectiveFunction(neighbor.routes) //to expensive and not needed just compare route lengths
+            neighbor.totalCost = instance.computeObjectiveFunction(neighbor.routes) //to expensive and not needed just compare route lengths
             solutions.add(neighbor)
         }
 
