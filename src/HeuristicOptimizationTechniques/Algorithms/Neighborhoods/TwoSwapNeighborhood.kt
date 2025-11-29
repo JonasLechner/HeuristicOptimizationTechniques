@@ -31,7 +31,7 @@ class TwoSwapNeighborhood(private val instance: Instance) : Neighborhood {
             val newLen = instance.computeRouteLength(newRoute)
             neighbor.sumsPerRoute[longestRouteIndex] = newLen
 
-            //neighbor.totalCost = instance.computeObjectiveFunction(neighbor.routes) //to expensive and not needed just compare route lengths
+            neighbor.totalCost = instance.computeObjectiveFunction(neighbor)
             solutions.add(neighbor)
         }
 

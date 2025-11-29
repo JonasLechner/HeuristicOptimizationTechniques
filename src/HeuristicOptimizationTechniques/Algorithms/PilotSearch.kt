@@ -12,13 +12,9 @@ class PilotSearch(
     private val maxExtensionAmount: Int
 ) : ConstructionHeuristic {
     private val logger = Logger.getLogger(PilotSearch::class.java.simpleName)
-    private val n: Int = instance.numberOfRequests
 
     override fun construct(): Solution {
-        val currentSolution = Solution(
-            n,
-            instance.numberOfVehicles
-        ) //solution where best candidate is added in each iteration
+        val currentSolution = Solution(instance) //solution where best candidate is added in each iteration
         var bestCompleteSolution: Solution? = null //solution with best greedy extension
 
         val time = measureTimeMillis {
@@ -40,7 +36,7 @@ class PilotSearch(
                     }
                     .take(maxExtensionAmount)
 
-                logger.info("Iteration ${currentSolution.fulfilledCount()}, found ${candidates.size} candidates.")
+                //logger.info("Iteration ${currentSolution.fulfilledCount()}, found ${candidates.size} candidates.")
                 if (candidates.isEmpty()) {
                     break
                 }

@@ -1,22 +1,26 @@
 package HeuristicOptimizationTechniques.Helper
 
 import java.util.ArrayList
-import java.util.Arrays
 import java.util.BitSet
 
 typealias Route = MutableList<Int> //Tour without depot at start and end
 typealias Routes = MutableList<Route>
 
-class Solution(val nRequests: Int, val routesSize: Int) {
-    val routes: Routes = ArrayList(routesSize)
-    val fulfilledRequests: BitSet =
-        BitSet(nRequests + 1) //n+ bits, bit==1 if request already fulfilled
-    var totalCost: Double = 0.0 //total cost of the partial/full solution
+class Solution(val instance: Instance) {
+    val routes: Routes = ArrayList(numberOfVehicles)
 
-    var sumsPerRoute: MutableList<Int> = MutableList(routesSize) { 0 }
+    val numberOfRequests: Int
+        get() = instance.numberOfRequests
+
+    val numberOfVehicles: Int
+        get() = instance.numberOfVehicles
+    val fulfilledRequests: BitSet =
+        BitSet(numberOfRequests + 1) //n+ bits, bit==1 if request already fulfilled
+    var totalCost: Double = 0.0 //total cost of the partial/full solution
+    var sumsPerRoute: MutableList<Int> = MutableList(numberOfVehicles) { 0 }
 
     //copy constructor
-    constructor(other: Solution) : this(other.nRequests, other.routesSize) {
+    constructor(other: Solution) : this(other.instance) {
         other.routes.forEach { r -> routes.add(r.toMutableList()) }
         fulfilledRequests.or(other.fulfilledRequests)
         totalCost = other.totalCost
@@ -40,6 +44,10 @@ class Solution(val nRequests: Int, val routesSize: Int) {
 
     fun sum(): Int {
         return sumsPerRoute.sum()
+    }
+
+    fun sumSquared(): Int {
+        return sumsPerRoute.sumOf { s -> s * s }
     }
 
     fun sumSquaredWithDelta(routeIndex: Int, delta: Int): Int {
@@ -84,8 +92,6 @@ class Solution(val nRequests: Int, val routesSize: Int) {
 
         other as Solution
 
-        if (nRequests != other.nRequests) return false
-        if (routesSize != other.routesSize) return false
         if (totalCost != other.totalCost) return false
         if (routes != other.routes) return false
         if (fulfilledRequests != other.fulfilledRequests) return false
@@ -94,10 +100,9 @@ class Solution(val nRequests: Int, val routesSize: Int) {
         return true
     }
 
+    //instance is ignored
     override fun hashCode(): Int {
-        var result = nRequests
-        result = 31 * result + routesSize
-        result = 31 * result + totalCost.hashCode()
+        var result = totalCost.hashCode()
         result = 31 * result + routes.hashCode()
         result = 31 * result + fulfilledRequests.hashCode()
         result = 31 * result + sumsPerRoute.hashCode()

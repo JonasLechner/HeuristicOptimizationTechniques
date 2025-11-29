@@ -1,7 +1,6 @@
 package HeuristicOptimizationTechniques.Helper
 
 import java.io.*
-import kotlin.math.ceil
 
 class Instance(relativePath: String) {
     val instanceName: String
@@ -112,25 +111,6 @@ class Instance(relativePath: String) {
         return totalLength + fairnessWeight * (1 - computeFairness(routes))
     }
 
-    fun computeObjectiveFunction(routes: Routes, requestIndex: Int, targetVehicle: Int): Double {
-        var objectiveFunction = 0.0
-        var i = 0;
-        for (route in routes) {
-            if (i == targetVehicle) {
-                objectiveFunction += computeRouteLength(route, requestIndex);
-            } else {
-                objectiveFunction += computeRouteLength(route);
-            }
-            ++i
-        }
-        objectiveFunction += fairnessWeight * (1 - computeFairness(
-            routes,
-            requestIndex,
-            targetVehicle
-        ));
-        return objectiveFunction
-    }
-
     fun computeObjectiveFunction(
         routes: Routes,
         requestIndex: Int,
@@ -177,10 +157,22 @@ class Instance(relativePath: String) {
         return (sum * sum) / (numberOfVehicles * sumSquared)
     }
 
+    fun computeObjectiveFunction(solution: Solution): Double {
+        val sum = solution.sum()
+        val sumSquared = solution.sumSquared()
+
+        val fairness = computeFairness(sum, sumSquared)
+
+        return sum + fairnessWeight * (1 - fairness)
+    }
+
+    fun computeFairness(sum: Int, squaredSum: Int): Double {
+        return (sum.toDouble() * sum.toDouble()) / (numberOfVehicles.toDouble() * squaredSum.toDouble());
+    }
+
     fun calculateObjectiveFromSolution(
         solution: Solution,
-        candidate: Candidate,
-        routeLengthDelta: Int
+        candidate: Candidate, routeLengthDelta: Int
     ): Double {
         val newSum = solution.sum() + routeLengthDelta
         val newSumSquared = solution.sumSquaredWithDelta(candidate.routeIndex, routeLengthDelta)
@@ -230,30 +222,6 @@ class Instance(relativePath: String) {
     private fun computeFairness(
         routes: Routes,
         requestIndex: Int,
-        targetVehicle: Int
-    ): Double { //adding as last element
-        var sum = 0.0
-        var sumSquared = 0.0
-
-        var i = 0
-        for (route in routes) {
-            val d = if (i == targetVehicle) {
-                computeRouteLength(route, requestIndex)
-            } else {
-                computeRouteLength(route)
-            }
-            sum += d
-            sumSquared += (d * d)
-            ++i
-        }
-
-        if (sumSquared == 0.0) return 1.0
-        return (sum * sum) / (numberOfVehicles * sumSquared)
-    }
-
-    private fun computeFairness(
-        routes: Routes,
-        requestIndex: Int,
         previousDropoff: Int,
         nextPickup: Int,
         targetVehicle: Int
@@ -290,27 +258,6 @@ class Instance(relativePath: String) {
         return totalLength + prev.distance(depotLocation)
     }
 
-
-    fun computeRouteLength(route: Route, requestIndex: Int): Int { //adding as last element
-        val (one, two) = getIndexPairForRequest(requestIndex)
-        val pickup = getLocationOf(one)
-        val dropoff = getLocationOf(two)
-        if (route.isEmpty()) return depotLocation.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(
-            depotLocation
-        )
-
-        var totalLength = 0
-        var prev = depotLocation
-        for (i in route) {
-            val next = getLocationOf(i)
-            totalLength += prev.distance(next)
-            prev = next
-        }
-        return totalLength + prev.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(
-            depotLocation
-        )
-    }
-
     fun computeRouteLength(
         route: Route,
         requestIndex: Int,
@@ -337,49 +284,6 @@ class Instance(relativePath: String) {
                 nextPickupLocation
             ) - previousDropoffLocation.distance(nextPickupLocation)
         return baseLength + delta
-    }
-
-    fun computeRouteLengthDelta(route: Route, requestIndex: Int): Int {
-        val (one, two) = getIndexPairForRequest(requestIndex)
-        val pickup = getLocationOf(one)
-        val dropoff = getLocationOf(two)
-
-        if (route.isEmpty()) return depotLocation.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(
-            depotLocation
-        )
-
-        return getLocationOf(route.last()).distance(pickup) +
-                pickup.distance(dropoff) + dropoff.distance(depotLocation) -
-                getLocationOf(route.last()).distance(depotLocation)
-    }
-
-    fun computeRouteLengthDelta(
-        route: Route,
-        requestIndex: Int,
-        previousDropoff: Int,
-        nextPickup: Int
-    ): Int {
-        val (one, two) = getIndexPairForRequest(requestIndex)
-        val pickup = getLocationOf(one)
-        val dropoff = getLocationOf(two)
-
-        if (route.isEmpty()) return depotLocation.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(
-            depotLocation
-        )
-
-        val previousDropoffLocation =
-            if (previousDropoff == -1) depotLocation else getLocationOf(
-                getDropOffIndexForRequestId(previousDropoff - numberOfRequests)
-            )
-
-        val nextPickupLocation = if (nextPickup == -1) depotLocation else getLocationOf(
-            getPickupIndexForRequestId(nextPickup - numberOfRequests)
-        )
-
-        val delta = previousDropoffLocation.distance(pickup) +
-                pickup.distance(dropoff) + dropoff.distance(nextPickupLocation) -
-                previousDropoffLocation.distance(nextPickupLocation)
-        return delta + ceil(route.size.toDouble() * 1).toInt()  //penalty
     }
 
     @Throws(IOException::class)
