@@ -7,6 +7,8 @@ import HeuristicOptimizationTechniques.Algorithms.RandomizedConstruction;
 import HeuristicOptimizationTechniques.Algorithms.TabuSearch;
 import HeuristicOptimizationTechniques.Helper.Instance;
 import HeuristicOptimizationTechniques.Helper.Request;
+import HeuristicOptimizationTechniques.Helper.SolutionKt;
+import HeuristicOptimizationTechniques.Helper.SolutionRunner;
 import HeuristicOptimizationTechniques.Helper.StopCondition;
 
 import java.io.IOException;
@@ -14,7 +16,7 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-
+        /*
         String path = "instances/100/competition/instance61_nreq100_nveh2_gamma91.txt";
         Instance instance = new Instance(path);
         Instance instance1k = new Instance("instances/1000/competition/instance61_nreq1000_nveh20_gamma879.txt");
@@ -32,7 +34,6 @@ public class Main {
             //System.out.println(r);
         }
 
-        /*
         GreedyConstruction gc = new GreedyConstruction(instance);
         List<List<Integer>> routes = gc.construct();
         instance.writeSolution("mySolution2.txt", routes, instance.getInstanceName());
@@ -41,7 +42,6 @@ public class Main {
         List<List<Integer>> routesRandom = rc.construct();
         instance.writeSolution("mySolution2.txt", routesRandom, instance.getInstanceName());
 
-         */
 
         PilotSearch pilotSearch = new PilotSearch(instance1k, 3, 3);
         var solu = pilotSearch.construct();
@@ -50,6 +50,9 @@ public class Main {
         TabuSearch tabu = new TabuSearch(new TwoSwapNeighborhood(instance), new StopCondition.Iterations(1000), 100);
 
         instance.writeSolution("mySolution2.txt", solu.getRoutes(), instance.getInstanceName());
+         */
+
+        SolutionRunner.Companion.run();
     }
 }
 
