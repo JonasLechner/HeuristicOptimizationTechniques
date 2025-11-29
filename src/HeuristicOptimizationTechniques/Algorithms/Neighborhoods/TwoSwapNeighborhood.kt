@@ -30,6 +30,9 @@ class TwoSwapNeighborhood(private val instance: Instance) : Neighborhood {
             val temp = newRoute[i]
             newRoute[i] = newRoute[i + 1]
             newRoute[i + 1] = temp
+            if (!instance.isCapacityWithinBounds(newRoute)) {
+                continue
+            }
             neighbor.routes[longestRouteIndex] = newRoute
             val newLen = instance.computeRouteLength(newRoute)
             neighbor.sumsPerRoute[longestRouteIndex] = newLen

@@ -9,7 +9,7 @@ class VehicleSwapNeighborhood (private val instance: Instance) : Neighborhood {
     override fun createNeighborhood(solution: Solution): List<Solution> {
         val solutions = mutableListOf<Solution>()
 
-        var biggestDeltaFrom = Integer.MIN_VALUE
+        var biggestDeltaFrom = Int.MIN_VALUE
         var worstPickupFrom = -1
         var worstDropoffFrom = -1
         var worstRouteIndexFrom = -1
@@ -39,6 +39,10 @@ class VehicleSwapNeighborhood (private val instance: Instance) : Neighborhood {
             }
         }
 
+        if (worstRouteIndexFrom == -1) {
+            return emptyList()
+        }
+
         //swap route with all others vehicles except itself
         for (i in 0 ..<instance.numberOfVehicles) {
             if (i == worstRouteIndexFrom) continue
@@ -53,7 +57,7 @@ class VehicleSwapNeighborhood (private val instance: Instance) : Neighborhood {
             fromRoute.removeAt(worstDropoffFrom)
             fromRoute.removeAt(worstPickupFrom)
 
-            var smallestDeltaTo = Integer.MAX_VALUE
+            var smallestDeltaTo = Int.MAX_VALUE
             var bestPos = -1
             for (j in 0..toRoute.size step 2) {
                 var previousDropoff = -1 //depot index
@@ -73,6 +77,10 @@ class VehicleSwapNeighborhood (private val instance: Instance) : Neighborhood {
 
             toRoute.add(bestPos, pickupLoc)
             toRoute.add(bestPos + 1, dropoffLoc)
+            if (!instance.isCapacityWithinBounds(toRoute)) {
+                continue
+            }
+
 
             neighbor.sumsPerRoute[worstRouteIndexFrom] = instance.computeRouteLength(fromRoute)
             neighbor.sumsPerRoute[i] = instance.computeRouteLength(toRoute)

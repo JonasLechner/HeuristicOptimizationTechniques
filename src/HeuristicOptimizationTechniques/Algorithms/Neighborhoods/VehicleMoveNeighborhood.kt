@@ -103,6 +103,9 @@ class VehicleMoveNeighborhood(private val instance: Instance) : Neighborhood {
 
             toRoute.add(0, pickupLoc)
             toRoute.add(1, dropoffLoc)
+            if (!instance.isCapacityWithinBounds(toRoute)) {
+                continue
+            }
 
             neighbor.sumsPerRoute[longestRouteIndex] = instance.computeRouteLength(fromRoute)
             neighbor.sumsPerRoute[i] = instance.computeRouteLength(toRoute)
