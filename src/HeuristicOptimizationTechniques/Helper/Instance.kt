@@ -350,6 +350,7 @@ class Instance(relativePath: String) {
         val delta = previousDropoffLocation.distance(pickup) +
                 pickup.distance(dropoff) + dropoff.distance(nextPickupLocation) -
                 previousDropoffLocation.distance(nextPickupLocation)
+
         return delta
     }
 

@@ -14,8 +14,8 @@ class TabuSearch(
     val tabuListSize: Int
 ) :
     ImprovementHeuristic {
-    lateinit var tabuQueue: Deque<Int>
-    lateinit var tabuSet: MutableSet<Int>
+    private lateinit var tabuQueue: Deque<Int>
+    private lateinit var tabuSet: MutableSet<Int>
 
     override fun improve(solution: Solution): Solution {
         tabuQueue = ArrayDeque(tabuListSize) //could be extended by hashset

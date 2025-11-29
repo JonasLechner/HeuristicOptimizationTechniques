@@ -9,12 +9,13 @@ import kotlin.system.measureTimeMillis
 class PilotSearch(
     private val instance: Instance,
     private val maxRolloutDepth: Int,
-    private val maxExtensionAmount: Int
+    private val reducedExtensionCandidates: Int
 ) : ConstructionHeuristic {
     private val logger = Logger.getLogger(PilotSearch::class.java.simpleName)
 
     override fun construct(): Solution {
-        val currentSolution = Solution(instance) //solution where best candidate is added in each iteration
+        val currentSolution =
+            Solution(instance) //solution where best candidate is added in each iteration
         var bestCompleteSolution: Solution? = null //solution with best greedy extension
 
         val time = measureTimeMillis {
@@ -26,15 +27,21 @@ class PilotSearch(
                 var bestCandidate: Candidate? = null
 
                 //create one-step extensions (candidates) and take best ones
-                val candidates = instance.createCandidates(currentSolution)
+                val candidates = listOf(
+                    instance.createCandidates(currentSolution)
                     .sortedBy { candidate ->
                         val delta = instance.routeLengthDeltaCalculation(
                             currentSolution,
                             candidate
                         )
-                        instance.calculateObjectiveFromSolution(currentSolution, candidate, delta)
+                        instance.calculateObjectiveFromSolution(
+                            currentSolution,
+                            candidate,
+                            delta
+                        )
                     }
-                    .take(maxExtensionAmount)
+                    .take(reducedExtensionCandidates)
+                    .random())
 
                 //logger.info("Iteration ${currentSolution.fulfilledCount()}, found ${candidates.size} candidates.")
                 if (candidates.isEmpty()) {
@@ -103,48 +110,4 @@ class PilotSearch(
 
         return solution
     }
-
-    /*
-    private fun rollout2(solution: Solution, breakOffIfLocalMax: Boolean = true): Solution {
-        val unfulfilledRequests = instance.requests.filter { r -> solution.isFulfilled(r.id) }
-            .sortedByDescending { r -> r.demand } //TODO save, not recalculate on every rollout
-
-        for (r in unfulfilledRequests) {
-            var minVehilce: Int? = 0
-            var minDelta: Int = Int.MAX_VALUE
-
-            for (i in 0..<min(instance.numberOfVehicles, solution.routes.size)) {
-                val route: Route =
-                    solution.routes.getOrNull(i)
-                        ?: mutableListOf()
-
-                val delta = instance.computeRouteLengthDelta(
-                    route,
-                    r.id
-                )
-
-                if (delta < minDelta) {
-                    minVehilce = i
-                    minDelta = delta
-                }
-            }
-
-            if (minVehilce == null) {
-                break
-            }
-
-            val route: Route =
-                solution.routes.getOrNull(minVehilce)
-                    ?: mutableListOf()
-
-            instance.applyCandidateToSolution(
-                solution,
-                Candidate(r.id, minVehilce, route.size, route.size + 1)
-            )
-        }
-
-        return solution
-    }
-
-     */
 }

@@ -4,6 +4,8 @@ import HeuristicOptimizationTechniques.Helper.Instance
 import HeuristicOptimizationTechniques.Helper.Logger
 import HeuristicOptimizationTechniques.Helper.Route
 import HeuristicOptimizationTechniques.Helper.Solution
+import kotlin.collections.emptyList
+import kotlin.math.min
 
 class VehicleMoveNeighborhood(private val instance: Instance) : Neighborhood {
     private val logger = Logger.getLogger(VehicleMoveNeighborhood::class.java.simpleName)
@@ -95,7 +97,7 @@ class VehicleMoveNeighborhood(private val instance: Instance) : Neighborhood {
             }
         }
 
-        for (i in 0..<instance.numberOfVehicles) {
+        for (i in 0..min(solution.routes.size, instance.numberOfVehicles - 1)) {
             //move route to all vehicles except itself and add to the start
             if (i == longestRouteIndex) {
                 continue
@@ -103,6 +105,11 @@ class VehicleMoveNeighborhood(private val instance: Instance) : Neighborhood {
 
             val neighbor = solution.clone()
             val fromRoute = neighbor.routes[longestRouteIndex]
+
+            if (i == neighbor.routes.size) {
+                neighbor.routes.add(mutableListOf())
+            }
+
             val toRoute = neighbor.routes[i]
 
             val pickupLoc = fromRoute[worstPickup]

@@ -1,6 +1,7 @@
 package HeuristicOptimizationTechniques.Algorithms;
 
 import HeuristicOptimizationTechniques.Helper.Instance;
+import HeuristicOptimizationTechniques.Helper.Logger;
 import HeuristicOptimizationTechniques.Helper.Request;
 import HeuristicOptimizationTechniques.Helper.Solution;
 import kotlin.Pair;
@@ -11,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
-import java.util.logging.Logger;
 
 public class RandomizedConstruction implements ConstructionHeuristic {
     private final Instance instance;
@@ -24,7 +24,7 @@ public class RandomizedConstruction implements ConstructionHeuristic {
     private final Logger logger;
 
     public RandomizedConstruction(Instance instance, int numberOfIterations, int numberOfCandidatesToKeep) {
-        this.logger = Logger.getLogger(RandomizedConstruction.class.getName());
+        this.logger = Logger.Companion.getLogger(RandomizedConstruction.class.getName());
         this.numberOfRequest = instance.getNumberOfRequests();
         this.numberOfVehicles = instance.getNumberOfVehicles();
         this.vehicleCapacity = instance.getVehicleCapacity();

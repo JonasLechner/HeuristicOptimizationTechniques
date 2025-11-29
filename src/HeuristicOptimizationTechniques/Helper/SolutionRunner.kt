@@ -1,7 +1,14 @@
 package HeuristicOptimizationTechniques.Helper
 
-import HeuristicOptimizationTechniques.Algorithms.ConstructionHeuristic
+import HeuristicOptimizationTechniques.Algorithms.GreedyConstruction
+import HeuristicOptimizationTechniques.Algorithms.LocalSearch
+import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.TestNeighborhood
+import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.TwoSwapNeighborhood
+import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.VehicleMoveNeighborhood
+import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.VehicleSwapNeighborhood
 import HeuristicOptimizationTechniques.Algorithms.PilotSearch
+import HeuristicOptimizationTechniques.Algorithms.RandomizedConstruction
+import HeuristicOptimizationTechniques.Algorithms.VariableNeighborhoodDescent
 import java.io.File
 import kotlin.system.measureTimeMillis
 
@@ -13,7 +20,7 @@ class SolutionRunner() {
         private val logger = Logger.getLogger(SolutionRunner::class.java.simpleName)
 
         fun run() {
-            for (size in sizes.take(6)) {
+            for (size in sizes.take(5).takeLast(1)) {
                 var files = getFilePathsForInstance(size)
 
                 //only do 5 for bigger sizes
@@ -27,10 +34,33 @@ class SolutionRunner() {
                 logger.info("Calculating instances with n=$size")
                 for (file in files) {
                     val inst = Instance(file.path)
-                    val pilotSearch = PilotSearch(inst, 3, 3)
-                    val (solution, seconds) = runConstructionHeuristic(pilotSearch, inst)
+                    val pilotSearch = PilotSearch(inst, 10, 5)
+                    val greedyConstruction = RandomizedConstruction(inst, 5, 10)
 
-                    val realCost = inst.computeObjectiveFunction(solution.routes).toInt()
+                    val vnd = VariableNeighborhoodDescent(
+                        listOf(
+                            TestNeighborhood(inst, 3),
+                            TwoSwapNeighborhood(inst),
+                        )
+                    )
+
+                    val localSearch = LocalSearch(
+                        TwoSwapNeighborhood(inst),
+                        StepFunction.BEST_IMPROVEMENT,
+                        StopCondition.Iterations(100)
+                    )
+                    val (solution, seconds) = heuristicTime {
+                        greedyConstruction.construct()
+                    }
+
+                    val (solution2, seconds2) = heuristicTime {
+                        vnd.improve(solution)
+                    }
+
+                    println("Pilot: ${inst.computeObjectiveFunction(solution.routes)}, $seconds")
+                    println("Pilot Localsearched: ${inst.computeObjectiveFunction(solution2.routes)}, $seconds2")
+
+                    /*
                     builder.appendLine(
                         "${file.nameWithoutExtension};$realCost;${
                             "%.2f".format(
@@ -38,18 +68,18 @@ class SolutionRunner() {
                             )
                         }"
                     )
+                     */
                 }
-                File("results/pilot/n_${size}_solutions.csv").writeText(builder.toString())
+                //File("results/pilot/n_${size}_solutions.csv").writeText(builder.toString())
             }
         }
 
-        fun runConstructionHeuristic(
-            heuristic: ConstructionHeuristic,
-            instance: Instance
+        fun heuristicTime(
+            heuristicF: () -> Solution,
         ): Pair<Solution, Double> {
             val solution: Solution?
             val time = measureTimeMillis {
-                solution = heuristic.construct()
+                solution = heuristicF()
             }
 
             if (solution == null) {
