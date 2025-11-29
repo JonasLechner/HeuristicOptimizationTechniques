@@ -2,6 +2,7 @@ package HeuristicOptimizationTechniques;
 
 import HeuristicOptimizationTechniques.Algorithms.GreedyConstruction;
 import HeuristicOptimizationTechniques.Algorithms.LocalSearch;
+import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.TwoSwapNeighborhood;
 import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.VehicleMoveNeighborhood;
 import HeuristicOptimizationTechniques.Algorithms.PilotSearch;
 import HeuristicOptimizationTechniques.Algorithms.RandomizedConstruction;
@@ -39,7 +40,7 @@ public class Main {
 
         RandomizedConstruction rc = new RandomizedConstruction(instance, 1, 10);
         Solution solution = rc.construct();
-        instance.writeSolution("mySolution2.txt", solution.getRoutes(), instance.getInstanceName());
+        instance.writeSolution("mySolution1.txt", solution.getRoutes(), instance.getInstanceName());
 
         /*PilotSearch pilotSearch = new PilotSearch(instance, 10, 3);
         var solu = pilotSearch.construct();
@@ -47,10 +48,14 @@ public class Main {
         /*PilotSearch pilotSearch = new PilotSearch(instance, 5,5);
         pilotSearch.solve();*/
 
-        LocalSearch localSearch = new LocalSearch(new VehicleMoveNeighborhood(instance), StepFunction.BEST_IMPROVEMENT, 15);
-        var solulu = localSearch.improve(solution);
-        instance.writeSolution("mySolution3.txt", solulu.getRoutes(), instance.getInstanceName());
-        System.out.println("Instance totalcost: " + solulu.getTotalCost());
+        LocalSearch localSearch = new LocalSearch(new TwoSwapNeighborhood(instance), StepFunction.BEST_IMPROVEMENT, 15);
+        var solulu1 = localSearch.improve(solution);
+        instance.writeSolution("mySolution2.txt", solulu1.getRoutes(), instance.getInstanceName());
+        LocalSearch localSearch2 = new LocalSearch(new VehicleMoveNeighborhood(instance), StepFunction.BEST_IMPROVEMENT, 15);
+        System.out.println("second local search");
+        var solulu2 = localSearch2.improve(solulu1);
+        instance.writeSolution("mySolution3.txt", solulu2.getRoutes(), instance.getInstanceName());
+        System.out.println("Instance totalcost: " + solulu2.getTotalCost());
 
         /*GRASP grasp = new GRASP(instance, 15, new TwoSwapNeighborhood(instance));
         var soluludelulu = grasp.construct();
