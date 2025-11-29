@@ -4,6 +4,7 @@ import HeuristicOptimizationTechniques.Helper.Instance;
 import HeuristicOptimizationTechniques.Helper.Request;
 import HeuristicOptimizationTechniques.Helper.Solution;
 import kotlin.Pair;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
 
-public class RandomizedConstruction implements ConstructionHeuristic{
+public class RandomizedConstruction implements ConstructionHeuristic {
     private final Instance instance;
     private final int numberOfRequest;
     private final int numberOfVehicles;
@@ -22,7 +23,7 @@ public class RandomizedConstruction implements ConstructionHeuristic{
     private final int numberOfCandidatesToKeep;
     private final Logger logger;
 
-    public RandomizedConstruction(Instance instance, int numberOfIterations, int numberOfCandidatesToKeep){
+    public RandomizedConstruction(Instance instance, int numberOfIterations, int numberOfCandidatesToKeep) {
         this.logger = Logger.getLogger(RandomizedConstruction.class.getName());
         this.numberOfRequest = instance.getNumberOfRequests();
         this.numberOfVehicles = instance.getNumberOfVehicles();
@@ -35,7 +36,6 @@ public class RandomizedConstruction implements ConstructionHeuristic{
 
     @NotNull
     public Solution construct() {
-
         // Order by cheapest demand
         List<Integer> order = new ArrayList<>();
         for (int i = 0; i < numberOfRequest; i++) {
@@ -85,9 +85,9 @@ public class RandomizedConstruction implements ConstructionHeuristic{
                 Random random = new Random();
                 int k = random.nextInt(numberOfVehicles);
                 List<Integer> route = routes.get(k);
-                for (int i = 0; i < route.size(); i+=2) {
-                    int previousDropoff =  i == 0 ? -1 : route.get(i - 1);
-                    int nextPickup =  i == route.size() - 2 ? -1 : route.get(i + 1);
+                for (int i = 0; i < route.size(); i += 2) {
+                    int previousDropoff = i == 0 ? -1 : route.get(i - 1);
+                    int nextPickup = i == route.size() - 2 ? -1 : route.get(i + 1);
                     double delta = instance.computeObjectiveFunction(routes, requestIndex, k);
                     //double delta = instance.computeObjectiveFunction(routes, requestIndex, previousDropoff, nextPickup, k);
                     candidates.add(new Candidate(k, i, delta));
@@ -117,7 +117,7 @@ public class RandomizedConstruction implements ConstructionHeuristic{
         }
 
 
-        Solution solution = new Solution(numberOfRequest, numberOfVehicles);
+        Solution solution = new Solution(instance);
         for (int v = 0; v < numberOfVehicles; v++) {
             solution.getRoutes().add(new ArrayList<>(bestRoutes.get(v)));
 
@@ -134,7 +134,7 @@ public class RandomizedConstruction implements ConstructionHeuristic{
         }
 
         solution.setTotalCost(bestObjectiveFunction);
-        logger.info("Initial solution with cost: " +  solution.getTotalCost());
+        logger.info("Initial solution with cost: " + solution.getTotalCost());
         return solution;
     }
 

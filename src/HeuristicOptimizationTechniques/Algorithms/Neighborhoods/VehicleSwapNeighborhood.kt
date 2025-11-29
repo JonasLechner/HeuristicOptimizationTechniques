@@ -4,9 +4,9 @@ import HeuristicOptimizationTechniques.Helper.Instance
 import HeuristicOptimizationTechniques.Helper.Logger
 import HeuristicOptimizationTechniques.Helper.Solution
 
-class VehicleSwapNeighborhood (private val instance: Instance) : Neighborhood {
+class VehicleSwapNeighborhood(private val instance: Instance) : Neighborhood {
     private val logger = Logger.getLogger(VehicleSwapNeighborhood::class.java.simpleName)
-    override fun createNeighborhood(solution: Solution): List<Solution> {
+    override fun createNeighbors(solution: Solution): List<Solution> {
         val solutions = mutableListOf<Solution>()
 
         var biggestDeltaFrom = Int.MIN_VALUE
@@ -29,7 +29,13 @@ class VehicleSwapNeighborhood (private val instance: Instance) : Neighborhood {
                 if (j + 2 < currentRoute.size) {
                     nextPickup = currentRoute[j + 2]
                 }
-                val distanceDelta = instance.computeRouteLengthDelta(currentRoute, pickup, dropoff, previousDropoff, nextPickup)
+                val distanceDelta = instance.computeRouteLengthDelta(
+                    currentRoute,
+                    pickup,
+                    dropoff,
+                    previousDropoff,
+                    nextPickup
+                )
                 if (distanceDelta > biggestDeltaFrom) {
                     worstPickupFrom = j
                     worstDropoffFrom = j + 1
@@ -44,7 +50,7 @@ class VehicleSwapNeighborhood (private val instance: Instance) : Neighborhood {
         }
 
         //swap route with all others vehicles except itself
-        for (i in 0 ..<instance.numberOfVehicles) {
+        for (i in 0..<instance.numberOfVehicles) {
             if (i == worstRouteIndexFrom) continue
 
             val neighbor = solution.clone()
@@ -68,7 +74,13 @@ class VehicleSwapNeighborhood (private val instance: Instance) : Neighborhood {
                 if (j != toRoute.size) {
                     nextPickup = toRoute[j]
                 }
-                val distanceDelta = instance.computeRouteLengthDelta(toRoute, pickupLoc, dropoffLoc, previousDropoff, nextPickup)
+                val distanceDelta = instance.computeRouteLengthDelta(
+                    toRoute,
+                    pickupLoc,
+                    dropoffLoc,
+                    previousDropoff,
+                    nextPickup
+                )
                 if (distanceDelta < smallestDeltaTo) {
                     bestPos = j
                     smallestDeltaTo = distanceDelta

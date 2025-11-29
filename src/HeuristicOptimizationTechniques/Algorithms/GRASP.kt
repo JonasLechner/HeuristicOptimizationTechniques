@@ -6,20 +6,26 @@ import HeuristicOptimizationTechniques.Helper.Instance
 import HeuristicOptimizationTechniques.Helper.Logger
 import HeuristicOptimizationTechniques.Helper.Solution
 import HeuristicOptimizationTechniques.Helper.StepFunction
+import HeuristicOptimizationTechniques.Helper.StopCondition
+import HeuristicOptimizationTechniques.Helper.StopConditionGuard
 
 class GRASP(
     private val instance: Instance,
-    private val iterations: Int,
     private val neighborhood: Neighborhood,
+    private val stopCondition: StopCondition
 ) : ConstructionHeuristic {
     private val logger = Logger.getLogger(GRASP::class.java.simpleName)
 
     override fun construct(): Solution {
         val randomizedConstruction = RandomizedConstruction(instance, 1, 4)
-        val localSearch = LocalSearch(neighborhood, StepFunction.BEST_IMPROVEMENT, 15)
+        val localSearch =
+            LocalSearch(neighborhood, StepFunction.BEST_IMPROVEMENT, StopCondition.Iterations(15))
         var bestTotalCost = Double.MAX_VALUE
         var bestSolution: Solution? = null
-        for (i in 1..iterations) {
+
+        val guard = StopConditionGuard(stopCondition)
+
+        while (guard.shouldContinue()) {
             var solution = randomizedConstruction.construct()
             logger.info("randomized found solution with totalCost: ${solution.totalCost}")
             solution = localSearch.improve(solution)

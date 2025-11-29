@@ -8,7 +8,7 @@ import HeuristicOptimizationTechniques.Helper.Solution
 class VehicleMoveNeighborhood(private val instance: Instance) : Neighborhood {
     private val logger = Logger.getLogger(VehicleMoveNeighborhood::class.java.simpleName)
 
-    override fun createNeighborhood(solution: Solution): List<Solution> {
+    override fun createNeighbors(solution: Solution): List<Solution> {
         val solutions = mutableListOf<Solution>()
         val longestRouteIndex = solution.getIndexOfLongestRoute()
         val longestRoute = solution.routes[longestRouteIndex]
@@ -49,7 +49,13 @@ class VehicleMoveNeighborhood(private val instance: Instance) : Neighborhood {
                 if (i + 1 != longestRoute.size - 1) {
                     nextPickup = longestRoute[i + 2]
                 }
-                val distanceDelta = instance.computeRouteLengthDelta(longestRoute, pickup, dropoff, previousDropoff, nextPickup)
+                val distanceDelta = instance.computeRouteLengthDelta(
+                    longestRoute,
+                    pickup,
+                    dropoff,
+                    previousDropoff,
+                    nextPickup
+                )
                 if (distanceDelta > biggestDelta) {
                     worstPickup = i
                     worstDropoff = i + 1
@@ -73,10 +79,14 @@ class VehicleMoveNeighborhood(private val instance: Instance) : Neighborhood {
                 if (dropoffIndex + 1 < longestRoute.size) {
                     nextPointForDropoff = longestRoute[dropoffIndex + 1]
                 }
-                val distanceDelta = instance.computeRouteLengthDelta(longestRoute, pickup, pickup,
-                    previousPointForPickup, nextPointForPickup) +
-                        instance.computeRouteLengthDelta(longestRoute, dropoff, dropoff,
-                            previousPointForDropoff, nextPointForDropoff)
+                val distanceDelta = instance.computeRouteLengthDelta(
+                    longestRoute, pickup, pickup,
+                    previousPointForPickup, nextPointForPickup
+                ) +
+                        instance.computeRouteLengthDelta(
+                            longestRoute, dropoff, dropoff,
+                            previousPointForDropoff, nextPointForDropoff
+                        )
                 if (distanceDelta > biggestDelta) {
                     worstPickup = pickupIndex
                     worstDropoff = dropoffIndex
@@ -85,7 +95,7 @@ class VehicleMoveNeighborhood(private val instance: Instance) : Neighborhood {
             }
         }
 
-        for (i in 0 ..<instance.numberOfVehicles) {
+        for (i in 0..<instance.numberOfVehicles) {
             //move route to all vehicles except itself and add to the start
             if (i == longestRouteIndex) {
                 continue

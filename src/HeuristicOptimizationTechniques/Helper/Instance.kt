@@ -353,6 +353,70 @@ class Instance(relativePath: String) {
         return delta
     }
 
+    fun computeObjectiveFunction(routes: Routes, requestIndex: Int, targetVehicle: Int): Double {
+        var objectiveFunction = 0.0
+        var i = 0;
+        for (route in routes) {
+            if (i == targetVehicle) {
+                objectiveFunction += computeRouteLength(route, requestIndex);
+            } else {
+                objectiveFunction += computeRouteLength(route);
+            }
+            ++i
+        }
+        objectiveFunction += fairnessWeight * (1 - computeFairness(
+            routes,
+            requestIndex,
+            targetVehicle
+        ));
+        return objectiveFunction
+    }
+
+    fun computeRouteLength(route: Route, requestIndex: Int): Int { //adding as last element
+        val (one, two) = getIndexPairForRequest(requestIndex)
+        val pickup = getLocationOf(one)
+        val dropoff = getLocationOf(two)
+        if (route.isEmpty()) return depotLocation.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(
+            depotLocation
+        )
+
+        var totalLength = 0
+        var prev = depotLocation
+        for (i in route) {
+            val next = getLocationOf(i)
+            totalLength += prev.distance(next)
+            prev = next
+        }
+        return totalLength + prev.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(
+            depotLocation
+        )
+    }
+
+    private fun computeFairness(
+        routes: Routes,
+        requestIndex: Int,
+        targetVehicle: Int
+    ): Double { //adding as last element
+        var sum = 0.0
+        var sumSquared = 0.0
+
+        var i = 0
+        for (route in routes) {
+            val d = if (i == targetVehicle) {
+                computeRouteLength(route, requestIndex)
+            } else {
+                computeRouteLength(route)
+            }
+            sum += d
+            sumSquared += (d * d)
+            ++i
+        }
+
+        if (sumSquared == 0.0) return 1.0
+        return (sum * sum) / (numberOfVehicles * sumSquared)
+    }
+
+
     @Throws(IOException::class)
     fun writeSolution(path: String, routes: Routes, instanceNameToWrite: String) {
         BufferedWriter(FileWriter(path)).use { bw ->

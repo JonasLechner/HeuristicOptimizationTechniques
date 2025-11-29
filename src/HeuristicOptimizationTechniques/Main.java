@@ -10,6 +10,7 @@ import HeuristicOptimizationTechniques.Helper.Instance;
 import HeuristicOptimizationTechniques.Helper.Request;
 import HeuristicOptimizationTechniques.Helper.Solution;
 import HeuristicOptimizationTechniques.Helper.StepFunction;
+import HeuristicOptimizationTechniques.Helper.StopCondition;
 
 import java.io.IOException;
 import java.util.List;
@@ -37,9 +38,11 @@ public class Main {
         List<List<Integer>> routes = gc.construct();
         instance.writeSolution("mySolution2.txt", routes, instance.getInstanceName());*/
 
-        RandomizedConstruction rc = new RandomizedConstruction(instance, 1, 10);
+        RandomizedConstruction rc = new RandomizedConstruction(instance1k, 1, 10);
         Solution solution = rc.construct();
         instance.writeSolution("mySolution2.txt", solution.getRoutes(), instance.getInstanceName());
+
+        System.out.println("Instance totalcost: " + instance.computeObjectiveFunction(solution.getRoutes()));
 
         /*PilotSearch pilotSearch = new PilotSearch(instance, 10, 3);
         var solu = pilotSearch.construct();
@@ -47,10 +50,11 @@ public class Main {
         /*PilotSearch pilotSearch = new PilotSearch(instance, 5,5);
         pilotSearch.solve();*/
 
-        LocalSearch localSearch = new LocalSearch(new VehicleMoveNeighborhood(instance), StepFunction.BEST_IMPROVEMENT, 15);
+        LocalSearch localSearch = new LocalSearch(new VehicleMoveNeighborhood(instance), StepFunction.FIRST_IMPROVEMENT, new StopCondition.Iterations(100));
         var solulu = localSearch.improve(solution);
         instance.writeSolution("mySolution3.txt", solulu.getRoutes(), instance.getInstanceName());
-        System.out.println("Instance totalcost: " + solulu.getTotalCost());
+        System.out.println("Instance totalcost: " + instance.computeObjectiveFunction(solulu.getRoutes()));
+
 
         /*GRASP grasp = new GRASP(instance, 15, new TwoSwapNeighborhood(instance));
         var soluludelulu = grasp.construct();
