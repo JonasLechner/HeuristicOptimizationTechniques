@@ -286,6 +286,73 @@ class Instance(relativePath: String) {
         return baseLength + delta
     }
 
+    fun computeRouteLengthDelta(route: Route, requestIndex: Int): Int {
+        val (one, two) = getIndexPairForRequest(requestIndex)
+        val pickup = getLocationOf(one)
+        val dropoff = getLocationOf(two)
+
+        if (route.isEmpty()) return depotLocation.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(
+            depotLocation
+        )
+
+        return getLocationOf(route.last()).distance(pickup) +
+                pickup.distance(dropoff) + dropoff.distance(depotLocation) -
+                getLocationOf(route.last()).distance(depotLocation)
+    }
+
+    fun computeRouteLengthDelta(
+        route: Route,
+        requestIndex: Int,
+        previousDropoff: Int,
+        nextPickup: Int
+    ): Int {
+        val (one, two) = getIndexPairForRequest(requestIndex)
+        val pickup = getLocationOf(one)
+        val dropoff = getLocationOf(two)
+
+        if (route.isEmpty()) return depotLocation.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(
+            depotLocation
+        )
+
+        val previousDropoffLocation =
+            if (previousDropoff == -1) depotLocation else getLocationOf(
+                getDropOffIndexForRequestId(previousDropoff - numberOfRequests)
+            )
+
+        val nextPickupLocation = if (nextPickup == -1) depotLocation else getLocationOf(
+            getPickupIndexForRequestId(nextPickup - numberOfRequests)
+        )
+
+        val delta = previousDropoffLocation.distance(pickup) +
+                pickup.distance(dropoff) + dropoff.distance(nextPickupLocation) -
+                previousDropoffLocation.distance(nextPickupLocation)
+        return delta
+    }
+
+    fun computeRouteLengthDelta(
+        route: Route,
+        pickupIndex: Int,
+        dropoffIndex: Int,
+        previousDropoff: Int,
+        nextPickup: Int
+    ): Int {
+        val pickup = getLocationOf(pickupIndex)
+        val dropoff = getLocationOf(dropoffIndex)
+
+        if (route.isEmpty()) return depotLocation.distance(pickup) + pickup.distance(dropoff) + dropoff.distance(
+            depotLocation
+        )
+
+        val previousDropoffLocation = if (previousDropoff == -1) depotLocation else getLocationOf(previousDropoff)
+
+        val nextPickupLocation = if (nextPickup == -1) depotLocation else getLocationOf(nextPickup)
+
+        val delta = previousDropoffLocation.distance(pickup) +
+                pickup.distance(dropoff) + dropoff.distance(nextPickupLocation) -
+                previousDropoffLocation.distance(nextPickupLocation)
+        return delta
+    }
+
     @Throws(IOException::class)
     fun writeSolution(path: String, routes: Routes, instanceNameToWrite: String) {
         BufferedWriter(FileWriter(path)).use { bw ->
@@ -305,7 +372,7 @@ class Instance(relativePath: String) {
     fun isDropIndex(locationIndex: Int) =
         locationIndex in (numberOfRequests + 1)..(2 * numberOfRequests)
 
-    private fun requestIdOfIndex(locationIndex: Int): Int {
+    fun requestIdOfIndex(locationIndex: Int): Int {
         if (isPickupIndex(locationIndex)) {
             return locationIndex
         } else if (isDropIndex(locationIndex)) {

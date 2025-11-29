@@ -2,6 +2,7 @@ package HeuristicOptimizationTechniques.Algorithms
 
 import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.Neighborhood
 import HeuristicOptimizationTechniques.Helper.StopConditionGuard
+import HeuristicOptimizationTechniques.Helper.Logger
 import HeuristicOptimizationTechniques.Helper.Solution
 import HeuristicOptimizationTechniques.Helper.StepFunction
 import HeuristicOptimizationTechniques.Helper.StopCondition
@@ -12,6 +13,7 @@ class LocalSearch(
     private val stepFunction: StepFunction = StepFunction.BEST_IMPROVEMENT,
     private val stopCondition: StopCondition
 ) : ImprovementHeuristic {
+    private val logger = Logger.getLogger(LocalSearch::class.java.simpleName)
 
     override fun improve(solution: Solution): Solution {
         var bestSolution: Solution = solution
@@ -56,7 +58,7 @@ class LocalSearch(
                 }
             }
         }
-
+        logger.info("Found solution with cost ${bestSolution.totalCost}.")
         return bestSolution
     }
 }
