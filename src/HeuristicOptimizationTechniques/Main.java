@@ -5,6 +5,7 @@ import static java.lang.Math.min;
 
 import com.sun.jdi.ArrayReference;
 
+import HeuristicOptimizationTechniques.Algorithms.GRASP;
 import HeuristicOptimizationTechniques.Algorithms.GreedyConstruction;
 import HeuristicOptimizationTechniques.Algorithms.LocalSearch;
 import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.TwoSwapNeighborhood;
@@ -12,6 +13,8 @@ import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.VehicleMoveNeigh
 import HeuristicOptimizationTechniques.Algorithms.NewGreedyConstruction;
 import HeuristicOptimizationTechniques.Algorithms.PilotSearch;
 import HeuristicOptimizationTechniques.Algorithms.RandomizedConstruction;
+import HeuristicOptimizationTechniques.Algorithms.TabuSearch;
+import HeuristicOptimizationTechniques.Algorithms.VariableNeighborhoodDescent;
 import HeuristicOptimizationTechniques.Helper.Instance;
 import HeuristicOptimizationTechniques.Helper.Request;
 import HeuristicOptimizationTechniques.Helper.Solution;
@@ -41,57 +44,38 @@ public class Main {
 
         System.out.println("Depot: " + i1.getDepotLocation());
 
-        for (Request r : i1.getRequests()) {
-            //System.out.println(r);
-        }
-
-        /*GreedyConstruction gc = new GreedyConstruction(instance);
-        List<List<Integer>> routes = gc.construct();
-        instance.writeSolution("mySolution2.txt", routes, instance.getInstanceName());*/
-
-        /*
-        RandomizedConstruction rc = new RandomizedConstruction(instance1k, 1, 10);
-        Solution solution = rc.construct();
-        instance1k.writeSolution("mySolution2.txt", solution.getRoutes(), instance1k.getInstanceName());
-
-        System.out.println("Instance totalcost: " + instance1k.computeObjectiveFunction(solution.getRoutes()));
-
-         */
-
-        /*PilotSearch pilotSearch = new PilotSearch(instance, 10, 3);
-        var solu = pilotSearch.construct();
-        instance.writeSolution("mySolution2.txt", solu.getRoutes(), instance.getInstanceName());*/
-        /*PilotSearch pilotSearch = new PilotSearch(instance, 5,5);
-        pilotSearch.solve();*/
-
-        /*
-        LocalSearch localSearch = new LocalSearch(new VehicleMoveNeighborhood(instance1k), StepFunction.FIRST_IMPROVEMENT, new StopCondition.Iterations(100));
-        var solulu = localSearch.improve(solution);
-        instance1k.writeSolution("mySolution3.txt", solulu.getRoutes(), instance1k.getInstanceName());
-        System.out.println("Instance totalcost: " + instance1k.computeObjectiveFunction(solulu.getRoutes()));
-
-         */
-
-        //SolutionRunner.Companion.run();
-
-        for (Instance i : instances
+        for (Instance instance : instances
         ) {
-            //var twentyPercent = min(20, i.getNumberOfRequests() / 100);
-            var twentyPercent = max(500, i.getNumberOfRequests() / 5);
-            var greedyConstruction = new NewGreedyConstruction(i, false, twentyPercent);
-            var solutionBefore = greedyConstruction.construct();
+            var solution = getSolutionGRASP(instance);
 
-            LocalSearch ls = new LocalSearch(new TwoSwapNeighborhood(i), StepFunction.BEST_IMPROVEMENT, new StopCondition.Iterations(50));
-            var solution = ls.improve(solutionBefore);
-
-            System.out.println("Value: " + i.computeObjectiveFunction(solution.getRoutes()));
-            i.writeSolution("results/2swap/" + i.getInstanceName() + ".txt", solution.getRoutes(), i.getInstanceName());
+            System.out.println("Value: " + instance.computeObjectiveFunction(solution.getRoutes()));
+            instance.writeSolution("results/grasp/" + instance.getInstanceName() + ".txt", solution.getRoutes(), instance.getInstanceName());
         }
+    }
 
+    private static Solution getSolution(Instance instance) {
+        var maxCandidates = max(500, instance.getNumberOfRequests() / 5);
+        var greedyConstruction = new NewGreedyConstruction(instance, false, maxCandidates);
+        var solutionBefore = greedyConstruction.construct();
 
-        /*GRASP grasp = new GRASP(instance, 15, new TwoSwapNeighborhood(instance));
-        var soluludelulu = grasp.construct();
-        instance.writeSolution("mySolution4.txt", soluludelulu.getRoutes(), instance.getInstanceName());*/
+        //LocalSearch ls = new LocalSearch(new TwoSwapNeighborhood(instance), StepFunction.BEST_IMPROVEMENT, new StopCondition.Iterations(50));
+        TabuSearch ls = new TabuSearch(
+                new TwoSwapNeighborhood(instance),
+                new StopCondition.Iterations(50),
+                instance.getNumberOfRequests() / 10
+        );
+
+        return ls.improve(solutionBefore);
+    }
+
+    private static Solution getSolutionGRASP(Instance instance) {
+        GRASP ls = new GRASP(
+                instance,
+                new TwoSwapNeighborhood(instance),
+                new StopCondition.Iterations(3)
+        );
+
+        return ls.construct();
     }
 }
 

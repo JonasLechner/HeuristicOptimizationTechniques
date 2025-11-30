@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
+@Deprecated(since = "See NewGreedyConstruction")
 public class RandomizedConstruction implements ConstructionHeuristic {
     private final Instance instance;
     private final int numberOfRequest;
