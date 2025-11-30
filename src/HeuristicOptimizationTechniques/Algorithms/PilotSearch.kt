@@ -9,41 +9,39 @@ import kotlin.system.measureTimeMillis
 class PilotSearch(
     private val instance: Instance,
     private val maxRolloutDepth: Int,
-    private val reducedExtensionCandidates: Int
+    private val reducedExtensionCandidates: Int,
 ) : ConstructionHeuristic {
     private val logger = Logger.getLogger(PilotSearch::class.java.simpleName)
 
     override fun construct(): Solution {
         val currentSolution =
             Solution(instance) //solution where best candidate is added in each iteration
-        var bestCompleteSolution: Solution? = null //solution with best greedy extension
+        var bestCompleteSolution: Solution? = null //solution with best averages extension
 
         val time = measureTimeMillis {
             logger.info("Running...")
 
-            while (currentSolution.fulfilledCount() <= instance.minNumberOfRequestsFulfilled) {
+            while (currentSolution.fulfilledCount() < instance.minNumberOfRequestsFulfilled) {
                 var bestCost = Double.MAX_VALUE
                 var bestRollout: Solution? = null
                 var bestCandidate: Candidate? = null
 
                 //create one-step extensions (candidates) and take best ones
-                val candidates = listOf(
-                    instance.createCandidates(currentSolution)
-                    .sortedBy { candidate ->
-                        val delta = instance.routeLengthDeltaCalculation(
-                            currentSolution,
-                            candidate
-                        )
-                        instance.calculateObjectiveFromSolution(
-                            currentSolution,
-                            candidate,
-                            delta
-                        )
-                    }
-                    .take(reducedExtensionCandidates)
-                    .random())
+                val candidates =
+                    instance.createCandidates(currentSolution, true)
+                        .sortedBy { candidate ->
+                            val delta = instance.routeLengthDeltaCalculation(
+                                currentSolution,
+                                candidate
+                            )
+                            instance.calculateObjectiveFromSolution(
+                                currentSolution,
+                                candidate,
+                                delta
+                            )
+                        }
+                        .take(reducedExtensionCandidates)
 
-                //logger.info("Iteration ${currentSolution.fulfilledCount()}, found ${candidates.size} candidates.")
                 if (candidates.isEmpty()) {
                     break
                 }
@@ -88,7 +86,7 @@ class PilotSearch(
     //generate rollout for a particular solution
     private fun rollout(solution: Solution, breakOffIfLocalMax: Boolean = true): Solution {
         for (i in 1..maxRolloutDepth) {
-            val candidates = instance.createCandidates(solution)
+            val candidates = instance.createCandidates(solution, true)
 
             if (candidates.isEmpty()) {
                 return solution

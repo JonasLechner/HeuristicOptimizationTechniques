@@ -8,6 +8,7 @@ import HeuristicOptimizationTechniques.Helper.Solution
 import HeuristicOptimizationTechniques.Helper.StepFunction
 import HeuristicOptimizationTechniques.Helper.StopCondition
 import HeuristicOptimizationTechniques.Helper.StopConditionGuard
+import kotlin.math.min
 
 class GRASP(
     private val instance: Instance,
@@ -17,7 +18,9 @@ class GRASP(
     private val logger = Logger.getLogger(GRASP::class.java.simpleName)
 
     override fun construct(): Solution {
-        val randomizedConstruction = RandomizedConstruction(instance, 1, 4)
+        val onePercent = min(20, instance.numberOfRequests / 50)
+        val randomizedConstruction = NewGreedyConstruction(instance, true, onePercent)
+
         val localSearch =
             LocalSearch(neighborhood, StepFunction.BEST_IMPROVEMENT, StopCondition.Iterations(15))
         var bestTotalCost = Double.MAX_VALUE
@@ -27,17 +30,17 @@ class GRASP(
 
         while (guard.shouldContinue()) {
             var solution = randomizedConstruction.construct()
-            logger.info("randomized found solution with totalCost: ${solution.totalCost}")
+            //logger.info("randomized found solution with totalCost: ${solution.totalCost}")
             solution = localSearch.improve(solution)
-            logger.info("local search improved to totalCost: ${solution.totalCost}")
+            //logger.info("local search improved to totalCost: ${solution.totalCost}")
 
             if (solution.totalCost < bestTotalCost) {
-                logger.info("New better solution found!!!!!!!!!!!!!")
+                //logger.info("New better solution found!!!!!!!!!!!!!")
                 bestTotalCost = solution.totalCost
                 bestSolution = solution
             }
         }
-        logger.info("bestsolution: ${bestSolution?.totalCost}")
+        //logger.info("bestsolution: ${bestSolution?.totalCost}")
 
         return bestSolution!!
     }

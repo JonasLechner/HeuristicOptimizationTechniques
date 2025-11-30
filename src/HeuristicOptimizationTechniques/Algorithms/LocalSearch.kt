@@ -61,4 +61,8 @@ class LocalSearch(
         logger.info("Found solution with cost ${bestSolution.totalCost}.")
         return bestSolution
     }
+
+    override fun toString(): String {
+        return "${neighborhood.javaClass.name},$stepFunction"
+    }
 }

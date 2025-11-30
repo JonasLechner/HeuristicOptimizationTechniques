@@ -3,6 +3,7 @@ package HeuristicOptimizationTechniques.Algorithms.Neighborhoods
 import HeuristicOptimizationTechniques.Helper.Instance
 import HeuristicOptimizationTechniques.Helper.Logger
 import HeuristicOptimizationTechniques.Helper.Solution
+import kotlin.math.min
 
 class VehicleSwapNeighborhood(private val instance: Instance) : Neighborhood {
     private val logger = Logger.getLogger(VehicleSwapNeighborhood::class.java.simpleName)
@@ -13,7 +14,7 @@ class VehicleSwapNeighborhood(private val instance: Instance) : Neighborhood {
         var worstPickupFrom = -1
         var worstDropoffFrom = -1
         var worstRouteIndexFrom = -1
-        for (i in 0..<instance.numberOfVehicles) {
+        for (i in 0..<solution.routes.size) {
             val currentRoute = solution.routes[i]
             if (currentRoute.size < 2) continue
 
@@ -50,7 +51,7 @@ class VehicleSwapNeighborhood(private val instance: Instance) : Neighborhood {
         }
 
         //swap route with all others vehicles except itself
-        for (i in 0..<instance.numberOfVehicles) {
+        for (i in 0..<solution.routes.size) {
             if (i == worstRouteIndexFrom) continue
 
             val neighbor = solution.clone()
@@ -99,9 +100,10 @@ class VehicleSwapNeighborhood(private val instance: Instance) : Neighborhood {
             neighbor.totalCost = instance.computeObjectiveFunction(neighbor.routes)
 
             solutions.add(neighbor)
-            logger.info("neighbor with cost: ${neighbor.totalCost}")
-
+            //logger.info("neighbor with cost: ${neighbor.totalCost}")
         }
+
+
         return solutions
     }
 }

@@ -172,7 +172,8 @@ class Instance(relativePath: String) {
 
     fun calculateObjectiveFromSolution(
         solution: Solution,
-        candidate: Candidate, routeLengthDelta: Int
+        candidate: Candidate,
+        routeLengthDelta: Int
     ): Double {
         val newSum = solution.sum() + routeLengthDelta
         val newSumSquared = solution.sumSquaredWithDelta(candidate.routeIndex, routeLengthDelta)
@@ -343,7 +344,8 @@ class Instance(relativePath: String) {
             depotLocation
         )
 
-        val previousDropoffLocation = if (previousDropoff == -1) depotLocation else getLocationOf(previousDropoff)
+        val previousDropoffLocation =
+            if (previousDropoff == -1) depotLocation else getLocationOf(previousDropoff)
 
         val nextPickupLocation = if (nextPickup == -1) depotLocation else getLocationOf(nextPickup)
 
@@ -490,7 +492,8 @@ class Instance(relativePath: String) {
 
     fun createLastInsertionCandidatesPerRequest(
         sol: Solution,
-        requestId: Int
+        requestId: Int,
+        isRandomized: Boolean = false
     ): List<Candidate> {
         val candidates = ArrayList<Candidate>()
         val (pickup, dropOff) = getIndexPairForRequest(requestId)
@@ -501,29 +504,48 @@ class Instance(relativePath: String) {
             candidates.add(Candidate(requestId, sol.routes.size, 0, 1))
         }
 
-        // add in existing route at last position
-        for ((routeIdx, route) in sol.routes.withIndex()) {
-            val tmp = ArrayList(route)
+        if (sol.routes.isEmpty()) {
+            return candidates
+        }
+
+        //only add to random route
+        if (isRandomized) {
+            val routeIdx = sol.routes.indices.random()
+            val randomRoute = sol.routes[routeIdx]
+
+            val tmp = ArrayList(randomRoute)
             tmp.addAll(withNewRoute)
 
             if (isCapacityWithinBounds(tmp)) {
                 // tmp.size -2 is pickup index, tmp.size -1 is drop index (they were appended)
                 candidates.add(Candidate(requestId, routeIdx, tmp.size - 2, tmp.size - 1))
             }
+        } else {
+            // add in all existing routes at last position
+            for ((routeIdx, route) in sol.routes.withIndex()) {
+                val tmp = ArrayList(route)
+                tmp.addAll(withNewRoute)
+
+                if (isCapacityWithinBounds(tmp)) {
+                    // tmp.size -2 is pickup index, tmp.size -1 is drop index (they were appended)
+                    candidates.add(Candidate(requestId, routeIdx, tmp.size - 2, tmp.size - 1))
+                }
+            }
         }
 
         return candidates
     }
 
-    fun createCandidates(sol: Solution): List<Candidate> {
+    fun createCandidates(sol: Solution, isRandomized: Boolean = false): List<Candidate> {
         val all = ArrayList<Candidate>()
         for (rId in 1..this.numberOfRequests) {
             if (sol.isFulfilled(rId)) {
                 continue
             }
-            val candidates = createLastInsertionCandidatesPerRequest(sol, rId)
+            val candidates = createLastInsertionCandidatesPerRequest(sol, rId, isRandomized)
             all.addAll(candidates)
         }
+
         return all
     }
 

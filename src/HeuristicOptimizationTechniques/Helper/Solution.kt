@@ -7,7 +7,7 @@ typealias Route = MutableList<Int> //Tour without depot at start and end
 typealias Routes = MutableList<Route>
 
 class Solution(val instance: Instance) {
-    val routes: Routes = ArrayList(numberOfVehicles)
+    var routes: Routes = ArrayList(numberOfVehicles)
 
     val numberOfRequests: Int
         get() = instance.numberOfRequests
@@ -102,10 +102,8 @@ class Solution(val instance: Instance) {
 
     //instance is ignored
     override fun hashCode(): Int {
-        var result = totalCost.hashCode()
-        result = 31 * result + routes.hashCode()
+        var result = routes.hashCode()
         result = 31 * result + fulfilledRequests.hashCode()
-        result = 31 * result + sumsPerRoute.hashCode()
         return result
     }
 }
