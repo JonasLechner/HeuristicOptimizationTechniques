@@ -3,18 +3,11 @@ package HeuristicOptimizationTechniques;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
+import HeuristicOptimizationTechniques.Algorithms.*;
 import com.sun.jdi.ArrayReference;
 
-import HeuristicOptimizationTechniques.Algorithms.GRASP;
-import HeuristicOptimizationTechniques.Algorithms.GreedyConstruction;
-import HeuristicOptimizationTechniques.Algorithms.LocalSearch;
 import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.TwoSwapNeighborhood;
 import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.VehicleMoveNeighborhood;
-import HeuristicOptimizationTechniques.Algorithms.NewGreedyConstruction;
-import HeuristicOptimizationTechniques.Algorithms.PilotSearch;
-import HeuristicOptimizationTechniques.Algorithms.RandomizedConstruction;
-import HeuristicOptimizationTechniques.Algorithms.TabuSearch;
-import HeuristicOptimizationTechniques.Algorithms.VariableNeighborhoodDescent;
 import HeuristicOptimizationTechniques.Helper.Instance;
 import HeuristicOptimizationTechniques.Helper.Request;
 import HeuristicOptimizationTechniques.Helper.Solution;
@@ -44,12 +37,20 @@ public class Main {
 
         System.out.println("Depot: " + i1.getDepotLocation());
 
-        for (Instance instance : instances
-        ) {
+        /*for (Instance instance : instances ) {
             var solution = getSolutionGRASP(instance);
 
             System.out.println("Value: " + instance.computeObjectiveFunction(solution.getRoutes()));
             instance.writeSolution("results/grasp/" + instance.getInstanceName() + ".txt", solution.getRoutes(), instance.getInstanceName());
+        }*/
+
+        for (Instance instance : instances ) {
+            AntColonyOptimization antColonyOptimization = new AntColonyOptimization(instance, 30, 200, 1.0, 2.0, 0.5,
+                    1.0, null);
+            var solutionAnt = antColonyOptimization.construct();
+
+            System.out.println("Value: " + instance.computeObjectiveFunction(solutionAnt.getRoutes()));
+            instance.writeSolution("results/ant/" + instance.getInstanceName() + ".txt", solutionAnt.getRoutes(), instance.getInstanceName());
         }
     }
 

@@ -166,7 +166,7 @@ class Instance(relativePath: String) {
         return sum + fairnessWeight * (1 - fairness)
     }
 
-    fun computeFairness(sum: Int, squaredSum: Int): Double {
+    fun computeFairness(sum: Int, squaredSum: Long): Double {
         return (sum.toDouble() * sum.toDouble()) / (numberOfVehicles.toDouble() * squaredSum.toDouble());
     }
 
@@ -178,7 +178,7 @@ class Instance(relativePath: String) {
         val newSum = solution.sum() + routeLengthDelta
         val newSumSquared = solution.sumSquaredWithDelta(candidate.routeIndex, routeLengthDelta)
 
-        if (newSumSquared == 0) {
+        if (newSumSquared == 0.toLong()) {
             return 1.0
         }
 

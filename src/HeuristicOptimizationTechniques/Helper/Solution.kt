@@ -46,18 +46,18 @@ class Solution(val instance: Instance) {
         return sumsPerRoute.sum()
     }
 
-    fun sumSquared(): Int {
-        return sumsPerRoute.sumOf { s -> s * s }
+    fun sumSquared(): Long {
+        return sumsPerRoute.sumOf { s ->
+            val x = s.toLong()
+            x * x
+        }
     }
 
-    fun sumSquaredWithDelta(routeIndex: Int, delta: Int): Int {
-        var sum = 0
+    fun sumSquaredWithDelta(routeIndex: Int, delta: Int): Long {
+        var sum = 0L
         for ((idx, r) in sumsPerRoute.withIndex()) {
-            if (idx == routeIndex) {
-                sum += (delta + r) * (delta + r)
-            } else {
-                sum += r * r
-            }
+            val x = if (idx == routeIndex) (r + delta).toLong() else r.toLong()
+            sum += x * x
         }
         return sum
     }
