@@ -14,6 +14,7 @@ import HeuristicOptimizationTechniques.Helper.Solution;
 import HeuristicOptimizationTechniques.Helper.SolutionRunner;
 import HeuristicOptimizationTechniques.Helper.StepFunction;
 import HeuristicOptimizationTechniques.Helper.StopCondition;
+import kotlin.random.Random;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,12 +38,26 @@ public class Main {
 
         System.out.println("Depot: " + i1.getDepotLocation());
 
+
+        //NewGreedyConstruction newGreedyConstruction = new NewGreedyConstruction(i2, true, 10);
+
+        GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm(
+                new NewGreedyConstruction(i2, true, 3),
+                i2,
+                20,
+                2,
+                Random.Default
+        );
+
+        var solution = geneticAlgorithm.construct();
+        System.out.println("Value: " + solution.getTotalCost());
+
         /*for (Instance instance : instances ) {
             var solution = getSolutionGRASP(instance);
 
             System.out.println("Value: " + instance.computeObjectiveFunction(solution.getRoutes()));
-            instance.writeSolution("results/grasp/" + instance.getInstanceName() + ".txt", solution.getRoutes(), instance.getInstanceName());
-        }*/
+            instance.writeSolution("results/pilot/" + instance.getInstanceName() + ".txt", solution.getRoutes(), instance.getInstanceName());
+        }
 
         for (Instance instance : instances ) {
             AntColonyOptimization antColonyOptimization = new AntColonyOptimization(instance, 30, 200, 1.0, 2.0, 0.5,
@@ -52,6 +67,7 @@ public class Main {
             System.out.println("Value: " + instance.computeObjectiveFunction(solutionAnt.getRoutes()));
             instance.writeSolution("results/ant/" + instance.getInstanceName() + ".txt", solutionAnt.getRoutes(), instance.getInstanceName());
         }
+         */
     }
 
     private static Solution getSolution(Instance instance) {
@@ -67,6 +83,16 @@ public class Main {
         );
 
         return ls.improve(solutionBefore);
+    }
+
+    private static Solution getSolutionPilot(Instance instance) {
+        //LocalSearch ls = new LocalSearch(new TwoSwapNeighborhood(instance), StepFunction.BEST_IMPROVEMENT, new StopCondition.Iterations(50));
+        PilotSearch ls = new PilotSearch(
+                instance,
+                3,
+                3
+        );
+        return ls.construct();
     }
 
     private static Solution getSolutionGRASP(Instance instance) {

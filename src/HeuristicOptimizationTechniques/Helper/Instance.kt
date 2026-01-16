@@ -490,10 +490,47 @@ class Instance(relativePath: String) {
         return computeObjectiveFunction(copy.routes)
     }
 
+
+    fun createInsertions(
+        solution: Solution,
+        requestId: Int,
+        createInsertionsFun: () -> List<Candidate>
+    ): List<Candidate> {
+        val candidates = ArrayList<Candidate>()
+        val (pickup, dropOff) = getIndexPairForRequest(requestId)
+        val withNewRoute = mutableListOf(pickup, dropOff)
+
+        // add in new route
+        if (solution.routes.size < numberOfVehicles && isCapacityWithinBounds(withNewRoute)) {
+            candidates.add(Candidate(requestId, solution.routes.size, 0, 1))
+        }
+
+        if (solution.routes.isEmpty()) {
+            return candidates
+        }
+
+        return createInsertionsFun()
+    }
+
+    fun createAllInsertionCandidatesPerRequest(
+        sol: Solution,
+        requestId: Int
+    ): List<Candidate> {
+        return createInsertions(sol, requestId) {
+            val candidates = ArrayList<Candidate>()
+            for ((routeIdx, route) in sol.routes.withIndex()) {
+                for (i in 0..route.size step 2) {
+                    candidates.add(Candidate(requestId, routeIdx, i, i + 1))
+                }
+            }
+            candidates
+        }
+    }
+
     fun createLastInsertionCandidatesPerRequest(
         sol: Solution,
         requestId: Int,
-        isRandomized: Boolean = false
+        isRandomized: Boolean = false,
     ): List<Candidate> {
         val candidates = ArrayList<Candidate>()
         val (pickup, dropOff) = getIndexPairForRequest(requestId)
@@ -536,7 +573,7 @@ class Instance(relativePath: String) {
         return candidates
     }
 
-    fun createCandidates(sol: Solution, isRandomized: Boolean = false): List<Candidate> {
+    fun createCandidates(sol: Solution, isRandomized: Boolean = true): List<Candidate> {
         val all = ArrayList<Candidate>()
         for (rId in 1..this.numberOfRequests) {
             if (sol.isFulfilled(rId)) {

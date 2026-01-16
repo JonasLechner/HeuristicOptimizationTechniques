@@ -1,5 +1,6 @@
 package HeuristicOptimizationTechniques.Algorithms
 
+import HeuristicOptimizationTechniques.Helper.Candidate
 import HeuristicOptimizationTechniques.Helper.Instance
 import HeuristicOptimizationTechniques.Helper.Solution
 
@@ -16,23 +17,15 @@ class NewGreedyConstruction(
             if (currentSolution.fulfilledCount() % 100 == 0)
                 println(currentSolution.fulfilledCount())
 
-            val candidateList = instance
-                .createCandidates(currentSolution, isRandomized)
-                .let { candidates ->
-                    //if randomized reduce later
-                    if (isRandomized) candidates else candidates.take(reducedCandidateCount)
+            val candidateList = instance.createCandidates(currentSolution, isRandomized)
+                .let { if (isRandomized) it else it.take(reducedCandidateCount) }
+                .map { c ->
+                    val delta = instance.routeLengthDeltaCalculation(currentSolution, c)
+                    val score = instance.calculateObjectiveFromSolution(currentSolution, c, delta)
+                    c to score
                 }
-                .sortedBy { candidate ->
-                    val delta = instance.routeLengthDeltaCalculation(
-                        currentSolution,
-                        candidate
-                    )
-                    instance.calculateObjectiveFromSolution(
-                        currentSolution,
-                        candidate,
-                        delta
-                    )
-                }
+                .sortedBy { it.second }
+                .map { it.first }
 
             if (candidateList.isEmpty()) {
                 break

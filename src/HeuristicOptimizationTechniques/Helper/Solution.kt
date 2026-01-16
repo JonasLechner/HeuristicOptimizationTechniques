@@ -80,6 +80,18 @@ class Solution(val instance: Instance) {
         return maxIndex
     }
 
+    fun removeRequest(requestIdx: Int) {
+        for ((routeidx, route) in routes.withIndex()) {
+            if (route.remove(requestIdx)) {
+                require(route.remove(requestIdx + numberOfRequests))
+                fulfilledRequests.set(requestIdx, false)
+
+                sumsPerRoute[routeidx] = instance.computeRouteLength(route) //TODO: only calculate delta
+                break
+            }
+        }
+    }
+
     override fun toString(): String {
         return routes.joinToString(separator = System.lineSeparator()) { route ->
             route.joinToString(separator = " ")
