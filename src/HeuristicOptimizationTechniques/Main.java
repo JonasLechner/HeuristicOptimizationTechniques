@@ -4,17 +4,12 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 import HeuristicOptimizationTechniques.Algorithms.*;
-import com.sun.jdi.ArrayReference;
 
 import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.TwoSwapNeighborhood;
-import HeuristicOptimizationTechniques.Algorithms.Neighborhoods.VehicleMoveNeighborhood;
 import HeuristicOptimizationTechniques.Helper.Instance;
-import HeuristicOptimizationTechniques.Helper.Request;
 import HeuristicOptimizationTechniques.Helper.Solution;
-import HeuristicOptimizationTechniques.Helper.SolutionRunner;
-import HeuristicOptimizationTechniques.Helper.StepFunction;
 import HeuristicOptimizationTechniques.Helper.StopCondition;
-import kotlin.random.Random;
+import kotlin.random.RandomKt;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,6 +21,7 @@ public class Main {
         Instance i1 = new Instance(path);
         Instance i2 = new Instance("instances/1000/competition/instance61_nreq1000_nveh20_gamma879.txt");
         Instance i3 = new Instance("instances/2000/competition/instance61_nreq2000_nveh40_gamma1829.txt");
+        Instance i4 = new Instance("instances/5000/competition/instance61_nreq5000_nveh100_gamma4448.txt");
 
         var instances = new ArrayList<>(List.of(i1, i2, i3));
 
@@ -39,18 +35,31 @@ public class Main {
         System.out.println("Depot: " + i1.getDepotLocation());
 
 
-        //NewGreedyConstruction newGreedyConstruction = new NewGreedyConstruction(i2, true, 10);
+        /*
+        ConstructionHeuristic newGreedyConstruction = new CompletelyRandomConstruction(i4);
+        var solu = newGreedyConstruction.construct();
+        System.out.println(solu.getTotalCost());
+         */
 
+        var random = RandomKt.Random(1001);
         GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm(
-                new NewGreedyConstruction(i2, true, 3),
+                //new NewGreedyConstruction(i2, true, 5),
+                new CompletelyRandomConstruction(i2, random),
                 i2,
-                20,
+                40,
                 2,
-                Random.Default
+                random,
+                new ArrayList<StopCondition>(
+                        List.of(new StopCondition.NoImprovementForKIterations(10),
+                                new StopCondition.Time(100))
+                ),
+                .3
         );
 
         var solution = geneticAlgorithm.construct();
-        System.out.println("Value: " + solution.getTotalCost());
+        System.out.println("Value: " + i2.computeObjectiveFunction(solution.getRoutes()));
+        System.out.println("Value: " + solution.fulfilledCount());
+        i2.writeSolution("results/genetic/" + i2.getInstanceName() + ".txt", solution.getRoutes(), i2.getInstanceName());
 
         /*for (Instance instance : instances ) {
             var solution = getSolutionGRASP(instance);

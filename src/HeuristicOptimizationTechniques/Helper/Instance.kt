@@ -490,18 +490,18 @@ class Instance(relativePath: String) {
         return computeObjectiveFunction(copy.routes)
     }
 
-
-    fun createInsertions(
+    fun createAllInsertionCandidatesPerRequest(
         solution: Solution,
-        requestId: Int,
-        createInsertionsFun: () -> List<Candidate>
+        requestId: Int
     ): List<Candidate> {
         val candidates = ArrayList<Candidate>()
-        val (pickup, dropOff) = getIndexPairForRequest(requestId)
-        val withNewRoute = mutableListOf(pickup, dropOff)
+        val request = getRequestById(requestId)
 
+        if(request.demand > vehicleCapacity){
+            return candidates
+        }
         // add in new route
-        if (solution.routes.size < numberOfVehicles && isCapacityWithinBounds(withNewRoute)) {
+        if (solution.routes.size < numberOfVehicles) {
             candidates.add(Candidate(requestId, solution.routes.size, 0, 1))
         }
 
@@ -509,21 +509,20 @@ class Instance(relativePath: String) {
             return candidates
         }
 
-        return createInsertionsFun()
+        for ((routeIdx, route) in solution.routes.withIndex()) {
+             candidates.addAll((createAllCandidatesPerRoute(route, requestId, routeIdx)))
+        }
+
+        return candidates
     }
 
-    fun createAllInsertionCandidatesPerRequest(
-        sol: Solution,
-        requestId: Int
+    fun createAllCandidatesPerRoute(
+        route: Route,
+        requestId: Int,
+        routeIdx: Int
     ): List<Candidate> {
-        return createInsertions(sol, requestId) {
-            val candidates = ArrayList<Candidate>()
-            for ((routeIdx, route) in sol.routes.withIndex()) {
-                for (i in 0..route.size step 2) {
-                    candidates.add(Candidate(requestId, routeIdx, i, i + 1))
-                }
-            }
-            candidates
+        return (0..route.size step 2).map { i ->
+            Candidate(requestId, routeIdx, i, i + 1)
         }
     }
 

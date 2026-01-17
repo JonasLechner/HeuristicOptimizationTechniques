@@ -3,12 +3,14 @@ package HeuristicOptimizationTechniques.Algorithms
 import HeuristicOptimizationTechniques.Helper.Candidate
 import HeuristicOptimizationTechniques.Helper.Instance
 import HeuristicOptimizationTechniques.Helper.Solution
+import kotlin.random.Random
 
 class NewGreedyConstruction(
     private val instance: Instance,
     private val isRandomized: Boolean,
     private val reducedCandidateCount: Int,
 ) : ConstructionHeuristic {
+
     override fun construct(): Solution {
         val currentSolution =
             Solution(instance) //solution where best candidate is added in each iteration
