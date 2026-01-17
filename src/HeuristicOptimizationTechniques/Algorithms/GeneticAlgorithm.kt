@@ -117,7 +117,7 @@ class GeneticAlgorithm(
         val route = first.routes.random(rng)
         val pickups = route.filter { instance.isPickupIndex(it) }
 
-        val fraction = 0.4 // tune 0.1..0.6
+        val fraction = 0.4
         val m = maxOf(1, (pickups.size * fraction).toInt())
         val requests = pickups.shuffled(rng).take(m)
 
@@ -126,14 +126,21 @@ class GeneticAlgorithm(
         }
 
         for (r in requests) {
-            val bestCandidate = instance.createAllInsertionCandidatesPerRequest(child, r)
+            val candidates = instance.createAllInsertionCandidatesPerRequest(child, r)
                 .map { c ->
                     val delta = instance.routeLengthDeltaCalculation(child, c)
                     val score = instance.calculateObjectiveFromSolution(child, c, delta)
                     c to score
-                }.sortedBy { it.second }.take(10).random(rng).first
+                }.sortedBy { it.second }
 
-            instance.applyCandidateToSolution(child, bestCandidate)
+            val candidate =
+                if (rng.nextDouble() < 0.85) {
+                    candidates.take(10).random(rng).first
+                } else {
+                    candidates.random(rng).first
+                }
+
+            instance.applyCandidateToSolution(child, candidate)
         }
         return child
     }
