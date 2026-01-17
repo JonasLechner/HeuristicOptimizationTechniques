@@ -93,6 +93,27 @@ class Solution(val instance: Instance) {
         return -1
     }
 
+    fun computeMinMaxRouteDistance(
+        routes: Routes,
+        instance: Instance
+    ): Pair<Int, Int> {
+        if (routes.isEmpty()) return 0 to 0
+
+        var min = Int.MAX_VALUE
+        var max = Int.MIN_VALUE
+
+        for (route in routes) {
+            val length = instance.computeRouteLength(route)
+            if (length < min) min = length
+            if (length > max) max = length
+        }
+
+        if (min == Int.MAX_VALUE) min = 0
+        if (max == Int.MIN_VALUE) max = 0
+
+        return Pair(min, max)
+    }
+
     override fun toString(): String {
         return routes.joinToString(separator = System.lineSeparator()) { route ->
             route.joinToString(separator = " ")
