@@ -35,47 +35,50 @@ public class Main {
         System.out.println("Depot: " + i1.getDepotLocation());
 
 
-        /*
-        ConstructionHeuristic newGreedyConstruction = new CompletelyRandomConstruction(i4);
-        var solu = newGreedyConstruction.construct();
-        System.out.println(solu.getTotalCost());
-         */
+        //ConstructionHeuristic newGreedyConstruction = new CompletelyRandomConstruction(i4);
+        //var solu = newGreedyConstruction.construct();
+        //System.out.println(solu.getTotalCost());
 
         var random = RandomKt.Random(1001);
         GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm(
-                //new NewGreedyConstruction(i2, true, 5),
                 new CompletelyRandomConstruction(i2, random),
                 i2,
-                40,
+                30,
                 2,
                 random,
                 new ArrayList<StopCondition>(
                         List.of(new StopCondition.NoImprovementForKIterations(10),
-                                new StopCondition.Time(100))
+                                new StopCondition.Time(30))
                 ),
-                .3
+                .5
         );
+        geneticAlgorithm.construct();
 
+        /*
         var solution = geneticAlgorithm.construct();
         System.out.println("Value: " + i2.computeObjectiveFunction(solution.getRoutes()));
         System.out.println("Value: " + solution.fulfilledCount());
         i2.writeSolution("results/genetic/" + i2.getInstanceName() + ".txt", solution.getRoutes(), i2.getInstanceName());
 
-        /*for (Instance instance : instances ) {
+        for (Instance instance : instances ) {
             var solution = getSolutionGRASP(instance);
 
             System.out.println("Value: " + instance.computeObjectiveFunction(solution.getRoutes()));
             instance.writeSolution("results/pilot/" + instance.getInstanceName() + ".txt", solution.getRoutes(), instance.getInstanceName());
         }
 
-        for (Instance instance : instances ) {
-            AntColonyOptimization antColonyOptimization = new AntColonyOptimization(instance, 30, 200, 1.0, 2.0, 0.5,
-                    1.0, null);
-            var solutionAnt = antColonyOptimization.construct();
+        AntColonyOptimization antColonyOptimization = new AntColonyOptimization(
+                i2, 40,
+                new ArrayList<StopCondition>(
+                        List.of(new StopCondition.NoImprovementForKIterations(50),
+                                new StopCondition.Time(60))
+                ),
+                .7, .8, 0.85,
+                .5, null);
+        var solutionAnt = antColonyOptimization.construct();
 
-            System.out.println("Value: " + instance.computeObjectiveFunction(solutionAnt.getRoutes()));
-            instance.writeSolution("results/ant/" + instance.getInstanceName() + ".txt", solutionAnt.getRoutes(), instance.getInstanceName());
-        }
+        System.out.println("Value: " + i2.computeObjectiveFunction(solutionAnt.getRoutes()));
+        i2.writeSolution("results/ant/" + i2.getInstanceName() + ".txt", solutionAnt.getRoutes(), i2.getInstanceName());
          */
     }
 
