@@ -162,6 +162,8 @@ class Instance(relativePath: String) {
         val sumSquared = solution.sumSquared()
 
         val fairness = computeFairness(sum, sumSquared)
+        val fairness2 = computeFairnessMinMax(solution)
+        val fairness3 = computeFairnessGiniInverted(solution)
 
         return sum + fairnessWeight * (1 - fairness)
     }
@@ -169,6 +171,34 @@ class Instance(relativePath: String) {
     fun computeFairness(sum: Int, squaredSum: Long): Double {
         return (sum.toDouble() * sum.toDouble()) / (numberOfVehicles.toDouble() * squaredSum.toDouble());
     }
+
+    fun computeFairnessMinMax(solution: Solution): Double {
+        val (min, max) = solution.computeMinMaxRouteDistance(solution.routes, this);
+
+        if (max == 0) return 1.0
+
+        return min.toDouble() / max.toDouble()
+    }
+
+    fun computeFairnessGiniInverted(solution: Solution): Double {
+        val d = solution.routes.map { r -> computeRouteLength(r).toDouble() }
+        val nK = numberOfVehicles
+
+        if (nK == 0) return 0.0
+        val sum = d.sum()
+        if (sum == 0.0) return 1.0
+
+        var absoluteDistance = 0.0
+        for (i in d.indices) {
+            for (j in d.indices) {
+                absoluteDistance += kotlin.math.abs(d[i] - d[j])
+            }
+        }
+
+        return 1.0 - (absoluteDistance / (2.0 * nK.toDouble() * sum))
+    }
+
+
 
     fun calculateObjectiveFromSolution(
         solution: Solution,
